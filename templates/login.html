@@ -6,74 +6,75 @@
 
 .auth-page {
     padding-top: 0;
-    min-height: 100vh;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(160deg, #051a4a 0%, #0b3d91 20%, #1250b8 40%, #1a5fd4 60%, #0f46a8 80%, #082b6e 100%);
-    position: relative;
+    background: linear-gradient(160deg, #0d3b7a 0%, #1555b8 25%, #1c6de0 50%, #155cc9 75%, #0f47a0 100%);
     overflow: hidden;
 }
 
-/* === Multi-layer waves === */
-.wave-layer {
+/* === Ocean waves (SVG shape) === */
+.wave-container {
     position: absolute;
-    bottom: 0; left: -50%; right: -50%;
-    height: 300px;
-    opacity: 0.15;
+    bottom: 0; left: 0; right: 0;
+    height: 260px;
+    overflow: hidden;
 }
-.wave-layer:nth-child(1) {
-    bottom: -20px;
-    background: radial-gradient(ellipse 120% 120% at 50% 100%, rgba(255,215,0,0.4), transparent 70%);
-    animation: wave1 10s ease-in-out infinite;
+.wave-svg {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 100%;
 }
-.wave-layer:nth-child(2) {
-    bottom: -40px;
-    background: radial-gradient(ellipse 100% 100% at 30% 100%, rgba(255,255,255,0.3), transparent 65%);
-    animation: wave2 7s ease-in-out infinite;
+.wave-svg.w1 {
+    animation: waveMove 12s linear infinite;
+    opacity: 0.25;
+    bottom: 20px;
 }
-.wave-layer:nth-child(3) {
-    bottom: -60px;
-    background: radial-gradient(ellipse 90% 90% at 70% 100%, rgba(135,206,250,0.3), transparent 60%);
-    animation: wave3 8s ease-in-out infinite;
+.wave-svg.w2 {
+    animation: waveMove 8s linear infinite reverse;
+    opacity: 0.18;
+    bottom: 0;
 }
-@keyframes wave1 {
-    0%,100% { transform: translateX(0) scaleY(1); }
-    25% { transform: translateX(3%) scaleY(1.15); }
-    50% { transform: translateX(-2%) scaleY(0.9); }
-    75% { transform: translateX(1%) scaleY(1.1); }
+.wave-svg.w3 {
+    animation: waveMove 15s linear infinite;
+    opacity: 0.12;
+    bottom: -10px;
 }
-@keyframes wave2 {
-    0%,100% { transform: translateX(0) scaleY(1); }
-    50% { transform: translateX(-4%) scaleY(1.2); }
-}
-@keyframes wave3 {
-    0%,100% { transform: translateX(0) scaleY(1); }
-    33% { transform: translateX(5%) scaleY(0.85); }
-    66% { transform: translateX(-3%) scaleY(1.1); }
+@keyframes waveMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 /* === Floating competition elements === */
 .float-el {
     position: absolute;
     font-size: 1.8rem;
-    opacity: 0.2;
-    animation: float 8s ease-in-out infinite;
+    opacity: 0.18;
+    animation: float 9s ease-in-out infinite;
     pointer-events: none;
 }
-.float-el:nth-child(4)  { top: 10%; left: 8%;  animation-delay: 0s; font-size:2rem; }
-.float-el:nth-child(5)  { top: 20%; right:10%; animation-delay: 1s; font-size:1.5rem; }
-.float-el:nth-child(6)  { top: 50%; left: 5%;  animation-delay: 2s; font-size:2.2rem; }
-.float-el:nth-child(7)  { top: 60%; right:8%;  animation-delay: 3s; font-size:1.6rem; }
-.float-el:nth-child(8)  { top: 30%; left: 85%; animation-delay: 4s; font-size:1.4rem; }
-.float-el:nth-child(9)  { top: 75%; left: 15%; animation-delay: 5s; font-size:1.8rem; }
-.float-el:nth-child(10) { top: 15%; left: 45%; animation-delay: 6s; font-size:1.3rem; }
-.float-el:nth-child(11) { top: 70%; right:25%; animation-delay: 7s; font-size:1.7rem; }
+.float-el:nth-child(4)  { top: 8%;  left: 6%;  animation-delay: 0s;   font-size:2.2rem; }
+.float-el:nth-child(5)  { top: 18%; right:8%;  animation-delay: 0.8s; font-size:1.5rem; }
+.float-el:nth-child(6)  { top: 45%; left: 4%;  animation-delay: 1.6s; font-size:2.4rem; }
+.float-el:nth-child(7)  { top: 55%; right:6%;  animation-delay: 2.4s; font-size:1.7rem; }
+.float-el:nth-child(8)  { top: 25%; left: 82%; animation-delay: 3.2s; font-size:1.4rem; }
+.float-el:nth-child(9)  { top: 72%; left: 12%; animation-delay: 4s;   font-size:2rem; }
+.float-el:nth-child(10) { top: 12%; left: 40%; animation-delay: 4.8s; font-size:1.3rem; }
+.float-el:nth-child(11) { top: 68%; right:22%; animation-delay: 5.6s; font-size:1.8rem; }
+.float-el:nth-child(12) { top: 35%; left: 35%; animation-delay: 6.4s; font-size:1.6rem; }
+.float-el:nth-child(13) { top: 80%; left: 55%; animation-delay: 7.2s; font-size:1.5rem; }
+.float-el:nth-child(14) { top: 5%;  right:30%; animation-delay: 8s;   font-size:1.2rem; }
 
 @keyframes float {
     0%,100% { transform: translateY(0) rotate(0deg); }
-    33%  { transform: translateY(-20px) rotate(5deg); }
-    66%  { transform: translateY(10px) rotate(-3deg); }
+    33%  { transform: translateY(-24px) rotate(6deg); }
+    66%  { transform: translateY(12px) rotate(-4deg); }
 }
 
 /* === Card === */
@@ -167,10 +168,18 @@
 </style>
 
 <div class="auth-page">
-    <!-- Wave layers -->
-    <div class="wave-layer"></div>
-    <div class="wave-layer"></div>
-    <div class="wave-layer"></div>
+    <!-- Ocean waves SVG -->
+    <div class="wave-container">
+        <svg class="wave-svg w1" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.3)" d="M0,120 C240,80 480,160 720,100 C960,40 1200,140 1440,90 C1680,40 1920,130 2160,100 C2400,70 2640,150 2880,90 L2880,200 L0,200 Z"/>
+        </svg>
+        <svg class="wave-svg w2" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.25)" d="M0,80 C300,120 600,60 900,100 C1200,140 1500,70 1800,90 C2100,110 2400,60 2880,80 L2880,200 L0,200 Z"/>
+        </svg>
+        <svg class="wave-svg w3" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.18)" d="M0,90 C200,60 500,130 800,80 C1100,30 1400,120 1700,95 C2000,70 2300,140 2600,85 C2750,60 2820,100 2880,85 L2880,200 L0,200 Z"/>
+        </svg>
+    </div>
 
     <!-- Floating competition elements -->
     <span class="float-el">🏅</span>
@@ -181,6 +190,9 @@
     <span class="float-el">⭐</span>
     <span class="float-el">📊</span>
     <span class="float-el">🔬</span>
+    <span class="float-el">🥇</span>
+    <span class="float-el">📱</span>
+    <span class="float-el">🚀</span>
 
     <div class="auth-card">
         <!-- Logo + School Name -->
