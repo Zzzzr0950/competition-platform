@@ -138,8 +138,8 @@ def approve_submission(sid):
     """, [sid], one=True)
     if not sub:
         return jsonify({'error': '申报记录不存在'}), 404
-    if sub['status'] != 'pending':
-        return jsonify({'error': '该申报不是待审核状态'}), 400
+
+    old_status = sub['status']
 
     # Recalculate credits on approval
     from credit_calculator import calculate_credits
@@ -156,10 +156,11 @@ def approve_submission(sid):
         [comment, credits, admin['id'], sid]
     )
 
+    action_name = 're-approved' if old_status == 'approved' else ('re-approved' if old_status == 'rejected' else 'approved')
     execute_db(
         """INSERT INTO submission_logs (submission_id, action, old_status, new_status, performed_by, comment)
-           VALUES (?, 'approved', 'pending', 'approved', ?, ?)""",
-        [sid, admin['id'], comment]
+           VALUES (?, ?, ?, 'approved', ?, ?)""",
+        [sid, action_name, old_status, admin['id'], comment]
     )
 
     return jsonify({'success': True, 'message': '审核通过'})
@@ -179,8 +180,8 @@ def reject_submission(sid):
     sub = query_db("SELECT * FROM submissions WHERE id = ?", [sid], one=True)
     if not sub:
         return jsonify({'error': '申报记录不存在'}), 404
-    if sub['status'] != 'pending':
-        return jsonify({'error': '该申报不是待审核状态'}), 400
+
+    old_status = sub['status']
 
     execute_db(
         """UPDATE submissions SET status = 'rejected', review_comment = ?,
@@ -188,10 +189,11 @@ def reject_submission(sid):
         [comment, admin['id'], sid]
     )
 
+    action_name = 'rejected' if old_status == 'pending' else 're-reviewed'
     execute_db(
         """INSERT INTO submission_logs (submission_id, action, old_status, new_status, performed_by, comment)
-           VALUES (?, 'rejected', 'pending', 'rejected', ?, ?)""",
-        [sid, admin['id'], comment]
+           VALUES (?, ?, ?, 'rejected', ?, ?)""",
+        [sid, action_name, old_status, admin['id'], comment]
     )
 
     return jsonify({'success': True, 'message': '已驳回'})
