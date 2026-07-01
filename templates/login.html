@@ -2,42 +2,46 @@
 {% block title %}登录 - 竞享成果{% endblock %}
 {% block content %}
 <style>
+/* Import premium Chinese font */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap');
+
 .auth-page {
     padding-top: 0;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0b3d91 0%, #1a56db 30%, #2563eb 60%, #1e40af 100%);
+    background: linear-gradient(135deg, #0a2a6e 0%, #0f3d91 25%, #1a56db 50%, #2563eb 70%, #1e40af 100%);
     position: relative;
     overflow: hidden;
 }
-/* Wave animation */
+/* Wave animations - more visible */
 .auth-page::before {
     content: '';
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 200px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 200'%3E%3Cpath fill='rgba(255,255,255,0.06)' d='M0,100 C240,150 480,50 720,100 C960,150 1200,50 1440,100 L1440,200 L0,200 Z'/%3E%3C/svg%3E") repeat-x;
-    background-size: 1440px 200px;
+    height: 220px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220'%3E%3Cpath fill='rgba(255,255,255,0.1)' d='M0,110 C200,160 400,50 720,110 C1040,170 1240,60 1440,110 L1440,220 L0,220 Z'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1440px 220px;
     animation: wave 8s ease-in-out infinite;
 }
 .auth-page::after {
     content: '';
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 150px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 200'%3E%3Cpath fill='rgba(255,255,255,0.04)' d='M0,80 C360,130 720,30 1080,80 C1260,110 1380,60 1440,80 L1440,200 L0,200 Z'/%3E%3C/svg%3E") repeat-x;
-    background-size: 1440px 150px;
+    height: 180px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220'%3E%3Cpath fill='rgba(255,255,255,0.07)' d='M0,90 C300,140 600,40 900,90 C1080,120 1320,50 1440,90 L1440,220 L0,220 Z'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1440px 180px;
     animation: wave2 6s ease-in-out infinite;
+    animation-delay: -1s;
 }
 @keyframes wave {
     0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-80px); }
+    50% { transform: translateX(-100px); }
 }
 @keyframes wave2 {
     0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(60px); }
+    50% { transform: translateX(80px); }
 }
 .auth-card {
     background: var(--color-white);
@@ -49,7 +53,7 @@
     position: relative;
     z-index: 1;
 }
-/* Logo row: emblem left, text right */
+/* Logo row: emblem left, text right, centered */
 .logo-row {
     display: flex;
     align-items: center;
@@ -61,21 +65,25 @@
     width: 64px;
     height: 64px;
     flex-shrink: 0;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
 }
-.logo-text h2 {
-    font-size: 1.05rem;
+.logo-text {
+    text-align: center;
+}
+.logo-text .cn-name {
+    font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #0b3d91;
-    margin: 0 0 2px 0;
-    line-height: 1.3;
+    letter-spacing: 2px;
+    line-height: 1.4;
 }
-.logo-text p {
-    font-size: 0.7rem;
-    color: #1a56db;
-    margin: 0;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
+.logo-text .en-name {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 0.75rem;
+    color: #4b6fb7;
+    letter-spacing: 1px;
+    line-height: 1.3;
 }
 /* Metallic trophy */
 .trophy-wrap {
@@ -114,8 +122,8 @@
         <div class="logo-row">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
             <div class="logo-text">
-                <h2>计算机科学与技术学院</h2>
-                <p>School of Computer Science and Technology</p>
+                <div class="cn-name">计算机科学与技术学院</div>
+                <div class="en-name">School of Computer Science and Technology</div>
             </div>
         </div>
 
