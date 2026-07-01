@@ -78,6 +78,32 @@
     66%  { transform: translateY(12px) rotate(-4deg); }
 }
 
+/* === Bubbles === */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    animation: bubbleUp 6s ease-in infinite;
+    pointer-events: none;
+}
+.bubble:nth-child(15) { width:18px;height:18px;left:10%;bottom:-30px;animation-delay:0s;animation-duration:7s; }
+.bubble:nth-child(16) { width:24px;height:24px;left:25%;bottom:-40px;animation-delay:1s;animation-duration:8s; }
+.bubble:nth-child(17) { width:12px;height:12px;left:40%;bottom:-20px;animation-delay:2s;animation-duration:5s; }
+.bubble:nth-child(18) { width:30px;height:30px;left:55%;bottom:-50px;animation-delay:0.5s;animation-duration:9s; }
+.bubble:nth-child(19) { width:15px;height:15px;left:70%;bottom:-35px;animation-delay:2.5s;animation-duration:6s; }
+.bubble:nth-child(20) { width:20px;height:20px;left:85%;bottom:-25px;animation-delay:1.5s;animation-duration:7.5s; }
+.bubble:nth-child(21) { width:10px;height:10px;left:15%;bottom:-15px;animation-delay:3s;animation-duration:5.5s; }
+.bubble:nth-child(22) { width:26px;height:26px;left:48%;bottom:-60px;animation-delay:3.5s;animation-duration:8.5s; }
+.bubble:nth-child(23) { width:14px;height:14px;left:62%;bottom:-45px;animation-delay:4s;animation-duration:6.5s; }
+.bubble:nth-child(24) { width:22px;height:22px;left:78%;bottom:-55px;animation-delay:4.5s;animation-duration:7s; }
+
+@keyframes bubbleUp {
+    0% { transform: translateY(0) scale(1); opacity: 0.6; }
+    50% { opacity: 0.3; }
+    100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+}
+
 /* === Card === */
 .auth-card {
     background: var(--color-white);
@@ -194,6 +220,18 @@
     <span class="float-el">🥇</span>
     <span class="float-el">📱</span>
     <span class="float-el">🚀</span>
+
+    <!-- Bubbles -->
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
 
     <div class="auth-card">
         <!-- Logo + School Name -->
