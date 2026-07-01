@@ -1,17 +1,136 @@
 {% extends "base.html" %}
 {% block title %}登录 - 竞享成果{% endblock %}
 {% block content %}
+<style>
+.auth-page {
+    padding-top: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0b3d91 0%, #1a56db 30%, #2563eb 60%, #1e40af 100%);
+    position: relative;
+    overflow: hidden;
+}
+/* Wave animation */
+.auth-page::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 200px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 200'%3E%3Cpath fill='rgba(255,255,255,0.06)' d='M0,100 C240,150 480,50 720,100 C960,150 1200,50 1440,100 L1440,200 L0,200 Z'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1440px 200px;
+    animation: wave 8s ease-in-out infinite;
+}
+.auth-page::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 150px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 200'%3E%3Cpath fill='rgba(255,255,255,0.04)' d='M0,80 C360,130 720,30 1080,80 C1260,110 1380,60 1440,80 L1440,200 L0,200 Z'/%3E%3C/svg%3E") repeat-x;
+    background-size: 1440px 150px;
+    animation: wave2 6s ease-in-out infinite;
+}
+@keyframes wave {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-80px); }
+}
+@keyframes wave2 {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(60px); }
+}
+.auth-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: 40px 28px 32px;
+    width: calc(100% - 40px);
+    max-width: 400px;
+    box-shadow: 0 12px 60px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+}
+/* Logo row: emblem left, text right */
+.logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.logo-row img {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.logo-text h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0b3d91;
+    margin: 0 0 2px 0;
+    line-height: 1.3;
+}
+.logo-text p {
+    font-size: 0.7rem;
+    color: #1a56db;
+    margin: 0;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+/* Metallic trophy */
+.trophy-wrap {
+    text-align: center;
+    margin-bottom: 12px;
+}
+.trophy-shine {
+    display: inline-block;
+    font-size: 4rem;
+    line-height: 1;
+    position: relative;
+    animation: shimmer 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 8px rgba(184,134,11,0.5)) drop-shadow(0 0 20px rgba(255,215,0,0.3));
+}
+@keyframes shimmer {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.trophy-sparkle {
+    position: absolute;
+    font-size: 1rem;
+    animation: spark 1.5s ease-in-out infinite;
+}
+.trophy-sparkle:nth-child(1) { top: -5px; right: -15px; animation-delay: 0s; }
+.trophy-sparkle:nth-child(2) { bottom: 5px; left: -12px; animation-delay: 0.5s; }
+.trophy-sparkle:nth-child(3) { top: 10px; left: -8px; animation-delay: 1s; }
+@keyframes spark {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+</style>
+
 <div class="auth-page">
     <div class="auth-card">
-        <div class="auth-logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽" style="width:90px;height:90px;margin-bottom:16px;filter:drop-shadow(0 2px 8px rgba(255,255,255,0.6));">
-            <div style="position:relative;display:inline-block;margin-bottom:4px;">
-                <span style="font-size:3.5rem;display:block;">🏆</span>
-                <span style="position:absolute;top:-4px;right:-20px;font-size:1.3rem;">✨</span>
+        <!-- Logo + School Name Row -->
+        <div class="logo-row">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
+            <div class="logo-text">
+                <h2>计算机科学与技术学院</h2>
+                <p>School of Computer Science and Technology</p>
             </div>
-            <h1 class="auth-logo-title">竞享成果</h1>
-            <p class="auth-logo-subtitle">中北大学计算机科学与技术学院<br>学生竞赛获奖申报平台</p>
         </div>
+
+        <!-- Metallic Trophy -->
+        <div class="trophy-wrap">
+            <div class="trophy-shine">
+                🏆
+                <span class="trophy-sparkle">✨</span>
+                <span class="trophy-sparkle">💫</span>
+                <span class="trophy-sparkle">⭐</span>
+            </div>
+        </div>
+
+        <h1 style="text-align:center;font-size:1.2rem;font-weight:700;color:var(--color-text);margin-bottom:20px;">竞享成果</h1>
+        <p style="text-align:center;font-size:0.8rem;color:var(--color-text-secondary);margin-bottom:24px;">学生竞赛获奖申报平台</p>
 
         <form method="POST" class="auth-form">
             <div class="form-group">

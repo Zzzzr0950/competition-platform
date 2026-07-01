@@ -4,7 +4,13 @@
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-logo">
-            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽" style="width:80px;height:80px;margin-bottom:12px;filter:drop-shadow(0 2px 6px rgba(255,255,255,0.6));">
+            <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽" style="width:52px;height:52px;flex-shrink:0;">
+                <div>
+                    <div style="font-size:0.95rem;font-weight:700;color:#0b3d91;">计算机科学与技术学院</div>
+                    <div style="font-size:0.65rem;color:#1a56db;">School of Computer Science and Technology</div>
+                </div>
+            </div>
             <h1 class="auth-logo-title">注册账号</h1>
             <p class="auth-logo-subtitle">请使用真实学号注册，管理员将核实信息</p>
         </div>
