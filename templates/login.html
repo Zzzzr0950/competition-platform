@@ -58,32 +58,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
     margin-bottom: 24px;
 }
 .logo-row img {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
     flex-shrink: 0;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
 }
 .logo-text {
     text-align: center;
+    line-height: 1.2;
 }
 .logo-text .cn-name {
     font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
     font-size: 1.2rem;
     font-weight: 700;
     color: #0b3d91;
-    letter-spacing: 2px;
-    line-height: 1.4;
+    letter-spacing: 1px;
+    margin-bottom: 0;
 }
 .logo-text .en-name {
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 0.75rem;
     color: #4b6fb7;
-    letter-spacing: 1px;
-    line-height: 1.3;
+    letter-spacing: 0.5px;
+    margin-top: 0;
 }
 /* Metallic trophy */
 .trophy-wrap {
@@ -123,7 +124,7 @@
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
             <div class="logo-text">
                 <div class="cn-name">计算机科学与技术学院</div>
-                <div class="en-name">School of Computer Science and Technology</div>
+                <div class="en-name">School of Computer Science and Technology NUC</div>
             </div>
         </div>
 
