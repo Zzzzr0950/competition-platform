@@ -31,8 +31,9 @@
     {% if session.user_id %}
     <nav class="top-nav">
         <div class="nav-inner">
-            <a href="{% if session.role == 'admin' %}{{ url_for('admin.dashboard') }}{% else %}{{ url_for('student.dashboard') }}{% endif %}" class="nav-brand">
-                🏆 竞享成果
+            <a href="{% if session.role == 'admin' %}{{ url_for('admin.dashboard') }}{% else %}{{ url_for('student.dashboard') }}{% endif %}" class="nav-brand" style="display:flex;align-items:center;gap:8px;">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽" style="width:32px;height:32px;border-radius:50%;object-fit:contain;">
+                <span>竞享成果</span>
             </a>
             <div class="nav-actions">
                 <span class="nav-user">{{ session.name or session.student_id }}</span>
