@@ -2,7 +2,6 @@
 {% block title %}登录 - 竞享成果{% endblock %}
 {% block content %}
 <style>
-/* Import premium Chinese font */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap');
 
 .auth-page {
@@ -11,85 +10,120 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0a2a6e 0%, #0f3d91 25%, #1a56db 50%, #2563eb 70%, #1e40af 100%);
+    background: linear-gradient(160deg, #051a4a 0%, #0b3d91 20%, #1250b8 40%, #1a5fd4 60%, #0f46a8 80%, #082b6e 100%);
     position: relative;
     overflow: hidden;
 }
-/* Wave animations - more visible */
-.auth-page::before {
-    content: '';
+
+/* === Multi-layer waves === */
+.wave-layer {
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 220px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220'%3E%3Cpath fill='rgba(255,255,255,0.1)' d='M0,110 C200,160 400,50 720,110 C1040,170 1240,60 1440,110 L1440,220 L0,220 Z'/%3E%3C/svg%3E") repeat-x;
-    background-size: 1440px 220px;
-    animation: wave 8s ease-in-out infinite;
+    bottom: 0; left: -50%; right: -50%;
+    height: 300px;
+    opacity: 0.15;
 }
-.auth-page::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 180px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220'%3E%3Cpath fill='rgba(255,255,255,0.07)' d='M0,90 C300,140 600,40 900,90 C1080,120 1320,50 1440,90 L1440,220 L0,220 Z'/%3E%3C/svg%3E") repeat-x;
-    background-size: 1440px 180px;
-    animation: wave2 6s ease-in-out infinite;
-    animation-delay: -1s;
+.wave-layer:nth-child(1) {
+    bottom: -20px;
+    background: radial-gradient(ellipse 120% 120% at 50% 100%, rgba(255,215,0,0.4), transparent 70%);
+    animation: wave1 10s ease-in-out infinite;
 }
-@keyframes wave {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-100px); }
+.wave-layer:nth-child(2) {
+    bottom: -40px;
+    background: radial-gradient(ellipse 100% 100% at 30% 100%, rgba(255,255,255,0.3), transparent 65%);
+    animation: wave2 7s ease-in-out infinite;
+}
+.wave-layer:nth-child(3) {
+    bottom: -60px;
+    background: radial-gradient(ellipse 90% 90% at 70% 100%, rgba(135,206,250,0.3), transparent 60%);
+    animation: wave3 8s ease-in-out infinite;
+}
+@keyframes wave1 {
+    0%,100% { transform: translateX(0) scaleY(1); }
+    25% { transform: translateX(3%) scaleY(1.15); }
+    50% { transform: translateX(-2%) scaleY(0.9); }
+    75% { transform: translateX(1%) scaleY(1.1); }
 }
 @keyframes wave2 {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(80px); }
+    0%,100% { transform: translateX(0) scaleY(1); }
+    50% { transform: translateX(-4%) scaleY(1.2); }
 }
+@keyframes wave3 {
+    0%,100% { transform: translateX(0) scaleY(1); }
+    33% { transform: translateX(5%) scaleY(0.85); }
+    66% { transform: translateX(-3%) scaleY(1.1); }
+}
+
+/* === Floating competition elements === */
+.float-el {
+    position: absolute;
+    font-size: 1.8rem;
+    opacity: 0.2;
+    animation: float 8s ease-in-out infinite;
+    pointer-events: none;
+}
+.float-el:nth-child(4)  { top: 10%; left: 8%;  animation-delay: 0s; font-size:2rem; }
+.float-el:nth-child(5)  { top: 20%; right:10%; animation-delay: 1s; font-size:1.5rem; }
+.float-el:nth-child(6)  { top: 50%; left: 5%;  animation-delay: 2s; font-size:2.2rem; }
+.float-el:nth-child(7)  { top: 60%; right:8%;  animation-delay: 3s; font-size:1.6rem; }
+.float-el:nth-child(8)  { top: 30%; left: 85%; animation-delay: 4s; font-size:1.4rem; }
+.float-el:nth-child(9)  { top: 75%; left: 15%; animation-delay: 5s; font-size:1.8rem; }
+.float-el:nth-child(10) { top: 15%; left: 45%; animation-delay: 6s; font-size:1.3rem; }
+.float-el:nth-child(11) { top: 70%; right:25%; animation-delay: 7s; font-size:1.7rem; }
+
+@keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    33%  { transform: translateY(-20px) rotate(5deg); }
+    66%  { transform: translateY(10px) rotate(-3deg); }
+}
+
+/* === Card === */
 .auth-card {
     background: var(--color-white);
     border-radius: var(--radius-lg);
-    padding: 40px 28px 32px;
+    padding: 36px 28px 32px;
     width: calc(100% - 40px);
     max-width: 400px;
-    box-shadow: 0 12px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 12px 60px rgba(0,0,0,0.35);
     position: relative;
-    z-index: 1;
+    z-index: 10;
 }
-/* Logo row: emblem left, text right, centered */
+
+/* Logo row */
 .logo-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 14px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 .logo-row img {
-    width: 60px;
-    height: 60px;
+    width: 76px;
+    height: 76px;
     flex-shrink: 0;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
 }
 .logo-text {
     text-align: center;
     line-height: 1.2;
 }
-.logo-text .cn-name {
+.cn-name {
     font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #0b3d91;
     letter-spacing: 1px;
-    margin-bottom: 0;
 }
-.logo-text .en-name {
-    font-family: 'Georgia', 'Times New Roman', serif;
-    font-size: 0.75rem;
+.en-name {
+    font-family: 'Georgia', serif;
+    font-size: 0.72rem;
     color: #4b6fb7;
-    letter-spacing: 0.5px;
-    margin-top: 0;
+    letter-spacing: 0.3px;
 }
-/* Metallic trophy */
+
+/* Trophy */
 .trophy-wrap {
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 .trophy-shine {
     display: inline-block;
@@ -97,29 +131,59 @@
     line-height: 1;
     position: relative;
     animation: shimmer 3s ease-in-out infinite;
-    filter: drop-shadow(0 4px 8px rgba(184,134,11,0.5)) drop-shadow(0 0 20px rgba(255,215,0,0.3));
+    filter: drop-shadow(0 4px 10px rgba(184,134,11,0.5)) drop-shadow(0 0 24px rgba(255,215,0,0.25));
 }
 @keyframes shimmer {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
 }
-.trophy-sparkle {
+.trophy-sp {
     position: absolute;
     font-size: 1rem;
     animation: spark 1.5s ease-in-out infinite;
 }
-.trophy-sparkle:nth-child(1) { top: -5px; right: -15px; animation-delay: 0s; }
-.trophy-sparkle:nth-child(2) { bottom: 5px; left: -12px; animation-delay: 0.5s; }
-.trophy-sparkle:nth-child(3) { top: 10px; left: -8px; animation-delay: 1s; }
+.trophy-sp:nth-child(1) { top:-4px; right:-16px; animation-delay:0s; }
+.trophy-sp:nth-child(2) { bottom:6px; left:-14px; animation-delay:0.5s; }
+.trophy-sp:nth-child(3) { top:8px; left:-10px; animation-delay:1s; }
 @keyframes spark {
-    0%, 100% { opacity: 0.3; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.2); }
+    0%,100% { opacity:0.2; transform:scale(0.8); }
+    50% { opacity:1; transform:scale(1.3); }
+}
+
+/* Title */
+.platform-title {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+.platform-sub {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 22px;
 }
 </style>
 
 <div class="auth-page">
+    <!-- Wave layers -->
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+
+    <!-- Floating competition elements -->
+    <span class="float-el">🏅</span>
+    <span class="float-el">💡</span>
+    <span class="float-el">🎯</span>
+    <span class="float-el">🏆</span>
+    <span class="float-el">💻</span>
+    <span class="float-el">⭐</span>
+    <span class="float-el">📊</span>
+    <span class="float-el">🔬</span>
+
     <div class="auth-card">
-        <!-- Logo + School Name Row -->
+        <!-- Logo + School Name -->
         <div class="logo-row">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
             <div class="logo-text">
@@ -128,18 +192,18 @@
             </div>
         </div>
 
-        <!-- Metallic Trophy -->
+        <!-- Trophy -->
         <div class="trophy-wrap">
             <div class="trophy-shine">
                 🏆
-                <span class="trophy-sparkle">✨</span>
-                <span class="trophy-sparkle">💫</span>
-                <span class="trophy-sparkle">⭐</span>
+                <span class="trophy-sp">✨</span>
+                <span class="trophy-sp">💫</span>
+                <span class="trophy-sp">⭐</span>
             </div>
         </div>
 
-        <h1 style="text-align:center;font-size:1.2rem;font-weight:700;color:var(--color-text);margin-bottom:20px;">竞享成果</h1>
-        <p style="text-align:center;font-size:0.8rem;color:var(--color-text-secondary);margin-bottom:24px;">学生竞赛获奖申报平台</p>
+        <div class="platform-title">竞享成果</div>
+        <div class="platform-sub">中北大学计算机科学与技术学院<br>学生竞赛获奖申报平台</div>
 
         <form method="POST" class="auth-form">
             <div class="form-group">
