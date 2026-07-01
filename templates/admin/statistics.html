@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}数据统计 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('admin.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">数据统计</h1>
+</div>
+
+<!-- Overview Cards -->
+<div class="stat-cards" id="overview-cards">
+    <div class="stat-card">
+        <div class="stat-number" id="stat-total">-</div>
+        <div class="stat-label">总申报数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-warning);" id="stat-pending">-</div>
+        <div class="stat-label">待审核</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-success);" id="stat-approved">-</div>
+        <div class="stat-label">已通过</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" id="stat-students">-</div>
+        <div class="stat-label">参与学生</div>
+    </div>
+</div>
+
+<!-- Chart: By Level -->
+<div class="card">
+    <div class="card-header">按竞赛级别分布</div>
+    <div id="chart-level" style="min-height:200px;"></div>
+</div>
+
+<!-- Chart: By Competition (Top 10) -->
+<div class="card">
+    <div class="card-header">按竞赛项目（Top 10）</div>
+    <div id="chart-competition" style="min-height:280px;"></div>
+</div>
+
+<!-- Chart: By Class -->
+<div class="card">
+    <div class="card-header">按班级分布</div>
+    <div id="chart-class" style="min-height:200px;"></div>
+</div>
+
+<!-- Export -->
+<div class="mt-4 text-center">
+    <a href="{{ url_for('admin.export_csv') }}" class="btn btn-outline">
+        📥 导出 CSV 报表
+    </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/statistics.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}审核详情 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('admin.review_list') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">辅助审核</h1>
+</div>
+
+<!-- Comparison Panel: Certificate vs Submitted Info -->
+<div class="card" style="padding:12px;">
+    <div class="card-header" style="display:flex;align-items:center;gap:8px;">
+        🤖 智能比对面板
+        <span style="font-size:0.75rem;font-weight:400;color:var(--color-text-muted);">请对照证书逐一核实以下信息</span>
+    </div>
+</div>
+
+{% if sub.certificate_image %}
+<!-- Certificate Image (large) -->
+<div class="detail-section">
+    <div class="detail-section-title">📎 证明材料（点击可放大）</div>
+    <div class="image-viewer" style="background:#f0f0f0;border-radius:8px;padding:8px;">
+        <img src="/uploads/{{ sub.certificate_image }}" alt="证书图片"
+             style="max-width:100%;max-height:400px;display:block;margin:0 auto;cursor:zoom-in;"
+             onclick="openImageModal(this.src)">
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:24px;color:var(--color-danger);">
+    <p style="font-size:1.2rem;">⚠️ 未上传证明材料</p>
+    <p class="text-sm text-muted">该学生未上传证书图片，请谨慎审核</p>
+</div>
+{% endif %}
+
+<!-- Checklist for verification -->
+<div class="detail-section">
+    <div class="detail-section-title">✅ 逐项核实清单</div>
+    {% set checks = [
+        ('竞赛名称', sub.competition_name, sub.competition_name),
+        ('竞赛级别', sub.competition_level, sub.competition_level),
+        ('获奖等级', sub.award_level, sub.award_level),
+        ('获奖层次', sub.award_tier or '国家级', sub.award_tier or '国家级'),
+        ('获奖日期', sub.award_date, sub.award_date),
+    ] %}
+    {% for label, value, check in checks %}
+    <div class="review-check-row" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--color-border);">
+        <span style="width:80px;flex-shrink:0;font-size:0.85rem;color:var(--color-text-secondary);">{{ label }}</span>
+        <span style="flex:1;font-weight:600;font-size:0.9rem;">{{ value }}</span>
+        <label class="form-checkbox" style="flex-shrink:0;margin-left:8px;">
+            <input type="checkbox" class="verify-check" onchange="updateVerifyStatus()">
+            <span style="font-size:0.75rem;">✓ 已核实</span>
+        </label>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Student Info -->
+<div class="detail-section">
+    <div class="detail-section-title">👤 学生信息</div>
+    <div class="detail-row">
+        <span class="detail-label">姓名</span>
+        <span class="detail-value">{{ sub.student_name }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">学号</span>
+        <span class="detail-value">{{ sub.student_id }}</span>
+    </div>
+    <div class="detail-row">
+        <span class="detail-label">班级</span>
+        <span class="detail-value">{{ sub.class_name }}</span>
+    </div>
+    {% if sub.team_name %}
+    <div class="detail-row">
+        <span class="detail-label">团队</span>
+        <span class="detail-value">{{ sub.team_name }}（{{ '队长' if sub.is_leader else '队员' }}）</span>
+    </div>
+    {% endif %}
+    {% if sub.team_members %}
+    <div class="detail-row">
+        <span class="detail-label">成员</span>
+        <span class="detail-value">{{ sub.team_members }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Review Actions -->
+{% if sub.status == 'pending' %}
+<div class="card">
+    <div class="card-header">审核决定</div>
+    <div class="form-group">
+        <label class="form-label" for="review-comment">审核意见（驳回时必填）</label>
+        <textarea class="form-textarea" id="review-comment" rows="2" placeholder="通过可留空；驳回请填写具体原因"></textarea>
+    </div>
+    <div id="verify-warning" class="text-sm text-muted mb-2" style="display:none;color:var(--color-warning)!important;">
+        ⚠️ 还有 {{ 5 }} 项未核实，建议核实后再审核
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-success" id="btn-approve" onclick="approveAction({{ sub.id }})">✅ 审核通过</button>
+        <button class="btn btn-danger" id="btn-reject" onclick="rejectAction({{ sub.id }})">❌ 驳回申报</button>
+    </div>
+</div>
+{% elif sub.review_comment %}
+<div class="detail-section">
+    <div class="detail-section-title">审核结果</div>
+    <p class="text-sm">{{ sub.review_comment }}</p>
+    <p class="text-xs text-muted mt-1">审核时间: {{ sub.reviewed_at or '' }}</p>
+</div>
+{% endif %}
+
+<!-- Image Modal -->
+<div id="image-modal" class="modal-overlay" style="display:none;" onclick="this.style.display='none'">
+    <img id="modal-img" src="" style="max-width:95%;max-height:95%;object-fit:contain;">
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/review.js') }}"></script>
+<script>
+// Update verification status warning
+function updateVerifyStatus() {
+    var checks = document.querySelectorAll('.verify-check');
+    var total = checks.length;
+    var done = 0;
+    checks.forEach(function(c) { if (c.checked) done++; });
+    var remaining = total - done;
+    var warning = document.getElementById('verify-warning');
+    if (remaining > 0) {
+        warning.style.display = 'block';
+        warning.textContent = '⚠️ 还有 ' + remaining + ' 项未核实，建议核实后再审核';
+    } else {
+        warning.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

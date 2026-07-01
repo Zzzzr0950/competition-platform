@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}竞赛目录管理 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('admin.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">竞赛目录管理</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">添加新竞赛</div>
+    <form id="add-form">
+        <div class="form-group">
+            <label class="form-label">竞赛名称</label>
+            <input type="text" class="form-input" id="add-name" required placeholder="竞赛全称">
+        </div>
+        <div class="form-group">
+            <label class="form-label">简称</label>
+            <input type="text" class="form-input" id="add-short" placeholder="如：蓝桥杯">
+        </div>
+        <div style="display:flex;gap:8px;">
+            <div class="form-group flex-1">
+                <label class="form-label">类别</label>
+                <select class="form-select" id="add-category">
+                    <option value="学科竞赛">学科竞赛</option>
+                    <option value="创新创业">创新创业</option>
+                    <option value="文体竞赛">文体竞赛</option>
+                </select>
+            </div>
+            <div class="form-group flex-1">
+                <label class="form-label">级别</label>
+                <select class="form-select" id="add-level">
+                    <option value="国家级">国家级</option>
+                    <option value="省级">省级</option>
+                    <option value="校级">校级</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">主办单位</label>
+            <input type="text" class="form-input" id="add-organizer" placeholder="主办单位">
+        </div>
+        <label class="form-checkbox mb-3">
+            <input type="checkbox" id="add-key" value="1">
+            <span>重点赛事</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm" style="width:auto;">添加竞赛</button>
+    </form>
+</div>
+
+<!-- Existing Catalog -->
+<div class="section-header mt-4">现有目录（2026）</div>
+
+{% if catalog %}
+{% for item in catalog %}
+<div class="card" style="position:relative;">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div class="flex-1">
+            <div style="font-weight:600;font-size:0.9rem;">{{ item.name }}</div>
+            <div class="text-xs text-muted">{{ item.short_name or '无简称' }}</div>
+            <div class="mt-1">
+                <span class="badge badge-{{ 'national' if item.level == '国家级' else 'provincial' if item.level == '省级' else 'school' }}">{{ item.level }}</span>
+                <span class="text-xs text-muted" style="margin-left:4px;">{{ item.category }}</span>
+                {% if item.is_key_competition %}
+                <span class="badge badge-key">重点</span>
+                {% endif %}
+                {% if not item.is_active %}
+                <span class="badge badge-rejected">已禁用</span>
+                {% endif %}
+            </div>
+            {% if item.organizer %}
+            <div class="text-xs text-muted">主办: {{ item.organizer }}</div>
+            {% endif %}
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button class="btn btn-outline btn-xs" onclick="editItem({{ item.id }})">编辑</button>
+            <button class="btn btn-danger btn-xs" onclick="deleteItem({{ item.id }})">删除</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+    <p class="empty-state-text">暂无竞赛目录数据</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add new competition
+document.getElementById('add-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = {
+        name: document.getElementById('add-name').value.trim(),
+        short_name: document.getElementById('add-short').value.trim(),
+        category: document.getElementById('add-category').value,
+        level: document.getElementById('add-level').value,
+        organizer: document.getElementById('add-organizer').value.trim(),
+        is_key_competition: document.getElementById('add-key').checked ? 1 : 0
+    };
+    if (!data.name) { showToast('请输入竞赛名称', 'warning'); return; }
+
+    Loading.show('正在添加...');
+    fetch('/api/admin/catalog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        Loading.hide();
+        if (d.error) { showToast(d.error, 'error'); }
+        else { showToast(d.message, 'success'); setTimeout(function() { location.reload(); }, 800); }
+    });
+});
+
+// Delete
+function deleteItem(id) {
+    confirmAction('确定要删除/禁用此竞赛条目吗？', function() {
+        Loading.show('处理中...');
+        fetch('/api/admin/catalog/' + id, { method: 'DELETE', credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                Loading.hide();
+                showToast(d.message, d.error ? 'error' : 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            });
+    });
+}
+
+// Edit (simple prompt-based editing)
+function editItem(id) {
+    var name = prompt('新名称（留空不修改）：');
+    if (name === null) return;
+    var level = prompt('新级别（国家级/省级/校级，留空不修改）：');
+    if (level === null) return;
+    var data = {};
+    if (name.trim()) data.name = name.trim();
+    if (level.trim()) data.level = level.trim();
+
+    if (Object.keys(data).length === 0) { showToast('未做修改', 'info'); return; }
+
+    fetch('/api/admin/catalog/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'same-origin'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        if (d.error) { showToast(d.error, 'error'); }
+        else { showToast(d.message, 'success'); setTimeout(function() { location.reload(); }, 800); }
+    });
+}
+</script>
+{% endblock %}

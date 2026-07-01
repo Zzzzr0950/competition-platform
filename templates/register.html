@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}注册 - 竞享成果{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="auth-logo-icon">📝</div>
+            <h1 class="auth-logo-title">注册账号</h1>
+            <p class="auth-logo-subtitle">请使用真实学号注册，管理员将核实信息</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label class="form-label" for="student_id"><span class="required">*</span> 学号</label>
+                <input type="text" class="form-input" id="student_id" name="student_id"
+                       placeholder="如 2407014310" required inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="name"><span class="required">*</span> 姓名</label>
+                <input type="text" class="form-input" id="name" name="name"
+                       placeholder="请输入真实姓名" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="class_name"><span class="required">*</span> 班级</label>
+                <input type="text" class="form-input" id="class_name" name="class_name"
+                       placeholder="如 24070143" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="major"><span class="required">*</span> 专业</label>
+                <select class="form-select" id="major" name="major" required>
+                    <option value="">-- 请选择专业 --</option>
+                    <option value="计算机科学与技术">计算机科学与技术</option>
+                    <option value="物联网工程">物联网工程</option>
+                    <option value="数据科学与大数据技术">数据科学与大数据技术</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="phone"><span class="required">*</span> 手机号</label>
+                <input type="text" class="form-input" id="phone" name="phone"
+                       placeholder="请输入手机号" required inputmode="tel" minlength="11">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="qq">QQ号（选填）</label>
+                <input type="text" class="form-input" id="qq" name="qq"
+                       placeholder="方便联系" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password"><span class="required">*</span> 密码（至少6位）</label>
+                <input type="password" class="form-input" id="password" name="password"
+                       placeholder="请设置密码" required minlength="6" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password_confirm"><span class="required">*</span> 确认密码</label>
+                <input type="password" class="form-input" id="password_confirm" name="password_confirm"
+                       placeholder="请再次输入密码" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary">注 册</button>
+        </form>
+
+        <div class="auth-footer">
+            已有账号？<a href="{{ url_for('auth.login') }}">返回登录</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

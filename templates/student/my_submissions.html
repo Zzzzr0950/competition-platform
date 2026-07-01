@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}我的申报 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('student.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">我的申报记录</h1>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs" id="filter-tabs">
+    <button class="filter-tab {% if current_filter == '' %}active{% endif %}"
+            onclick="filterBy('')">全部</button>
+    <button class="filter-tab {% if current_filter == 'pending' %}active{% endif %}"
+            onclick="filterBy('pending')">审核中</button>
+    <button class="filter-tab {% if current_filter == 'approved' %}active{% endif %}"
+            onclick="filterBy('approved')">已通过</button>
+    <button class="filter-tab {% if current_filter == 'rejected' %}active{% endif %}"
+            onclick="filterBy('rejected')">已驳回</button>
+</div>
+
+{% if submissions %}
+<div id="submission-list">
+    {% for sub in submissions %}
+    <div class="card submission-card" onclick="location.href='/submission/{{ sub.id }}'" style="cursor:pointer;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+            <!-- Certificate thumbnail -->
+            {% if sub.certificate_image %}
+            <div style="flex-shrink:0;width:80px;height:60px;border-radius:6px;overflow:hidden;border:1px solid var(--color-border);background:var(--color-bg);">
+                <img src="/uploads/{{ sub.certificate_image }}" alt="证明"
+                     style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            {% else %}
+            <div style="flex-shrink:0;width:80px;height:60px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-text-muted);font-size:0.7rem;">
+                无证明
+            </div>
+            {% endif %}
+            <!-- Info -->
+            <div class="flex-1" style="min-width:0;">
+                <div style="font-weight:600;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sub.competition_name }}</div>
+                <div style="font-size:0.75rem;color:var(--color-text-secondary);margin-top:2px;">
+                    <span class="badge badge-{{ sub.competition_level }}">{{ sub.competition_level }}</span>
+                    <span style="margin:0 4px;">·</span>
+                    {{ sub.award_level }}
+                    <span style="margin:0 4px;">·</span>
+                    {{ sub.created_at[:10] }}
+                </div>
+                <div style="margin-top:4px;">
+                    <span class="badge badge-{{ sub.status }}">
+                        {% if sub.status == 'pending' %}⏳ 审核中
+                        {% elif sub.status == 'approved' %}✅ 已通过
+                        {% else %}❌ 已驳回{% endif %}
+                    </span>
+                    {% if sub.review_comment %}
+                    <span style="font-size:0.7rem;color:var(--color-text-muted);margin-left:4px;">{{ sub.review_comment[:20] }}{% if sub.review_comment|length > 20 %}...{% endif %}</span>
+                    {% endif %}
+                </div>
+                <!-- Action buttons -->
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <p class="empty-state-text">
+        {% if current_filter %}
+        暂无{{ {'pending':'审核中','approved':'已通过','rejected':'已驳回'}.get(current_filter, '') }}的申报记录
+        {% else %}
+        还没有任何申报记录
+        {% endif %}
+    </p>
+    <a href="{{ url_for('student.submit') }}" class="btn btn-primary mt-4" style="display:inline-flex;width:auto;">去申报</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterBy(status) {
+    var url = '/my-submissions';
+    if (status) url += '?status=' + status;
+    window.location.href = url;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+database/platform.db
+uploads/certificates/*
+uploads/thumbnails/*
+*.jpg
+*.png
+.DS_Store

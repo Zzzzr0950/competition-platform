@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
+    <title>{% block title %}竞享成果——学生竞赛获奖申报平台{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Flash Messages / Toast Container -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="toast-container">
+        {% for category, message in messages %}
+        <div class="toast toast-{{ category }}" onclick="this.remove()">
+            <span class="toast-icon">
+                {% if category == 'success' %}✓{% elif category == 'error' %}✕{% elif category == 'warning' %}⚠{% else %}ℹ{% endif %}
+            </span>
+            <span class="toast-message">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Top Navigation Bar -->
+    {% if session.user_id %}
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="{% if session.role == 'admin' %}{{ url_for('admin.dashboard') }}{% else %}{{ url_for('student.dashboard') }}{% endif %}" class="nav-brand">
+                🏆 竞享成果
+            </a>
+            <div class="nav-actions">
+                <span class="nav-user">{{ session.name or session.student_id }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="nav-logout" onclick="return confirm('确定要退出登录吗？')">退出</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Navigation (Student only) -->
+    {% if session.user_id and session.role == 'student' %}
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <a href="{{ url_for('student.dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                <span class="bottom-nav-icon">🏠</span>
+                <span class="bottom-nav-label">首页</span>
+            </a>
+            <a href="{{ url_for('student.submit') }}" class="bottom-nav-item {% if request.endpoint == 'student.submit' %}active{% endif %}">
+                <span class="bottom-nav-icon">✏️</span>
+                <span class="bottom-nav-label">申报获奖</span>
+            </a>
+            <a href="{{ url_for('student.my_submissions') }}" class="bottom-nav-item {% if request.endpoint == 'student.my_submissions' %}active{% endif %}">
+                <span class="bottom-nav-icon">📄</span>
+                <span class="bottom-nav-label">我的申报</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Admin Bottom Navigation -->
+    {% if session.user_id and session.role == 'admin' %}
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <a href="{{ url_for('admin.dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                <span class="bottom-nav-icon">🏠</span>
+                <span class="bottom-nav-label">管理首页</span>
+            </a>
+            <a href="{{ url_for('admin.review_list') }}" class="bottom-nav-item {% if request.endpoint == 'admin.review_list' %}active{% endif %}">
+                <span class="bottom-nav-icon">✅</span>
+                <span class="bottom-nav-label">审核申报</span>
+            </a>
+            <a href="{{ url_for('admin.statistics') }}" class="bottom-nav-item {% if request.endpoint == 'admin.statistics' %}active{% endif %}">
+                <span class="bottom-nav-icon">📊</span>
+                <span class="bottom-nav-label">数据统计</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">加载中...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

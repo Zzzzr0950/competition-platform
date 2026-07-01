@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}审核申报 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('admin.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">审核申报</h1>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <select class="form-select" id="status-filter" onchange="applyFilters()">
+        <option value="">全部状态</option>
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>待审核</option>
+        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>已通过</option>
+        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>已驳回</option>
+    </select>
+    <select class="form-select" id="catalog-filter" onchange="applyFilters()">
+        <option value="">全部竞赛</option>
+        {% for c in catalog %}
+        <option value="{{ c.id }}" {% if catalog_filter == c.id|string %}selected{% endif %}>{{ c.name[:20] }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" class="form-input" id="search-input"
+           placeholder="🔍 姓名/学号/竞赛" value="{{ search }}"
+           style="flex:2;min-width:120px;"
+           onkeydown="if(event.key==='Enter')applyFilters()">
+</div>
+
+<!-- Submission List -->
+{% if submissions %}
+<div>
+    {% for sub in submissions %}
+    <div class="card" style="position:relative;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+            <div class="flex-1">
+                <div style="font-weight:600;font-size:0.9rem;">{{ sub.student_name }}</div>
+                <div class="text-xs text-muted">{{ sub.student_id }} · {{ sub.class_name }}</div>
+                <div class="mt-1" style="font-size:0.85rem;">
+                    {{ sub.competition_name }}
+                    <span class="badge badge-{{ 'national' if sub.competition_level == '国家级' else 'provincial' if sub.competition_level == '省级' else 'school' }}">{{ sub.competition_level }}</span>
+                </div>
+                <div class="text-sm mt-1">{{ sub.award_level }} · {{ sub.award_date }}</div>
+                <div class="mt-1">
+                    <span class="badge badge-{{ sub.status }}">{{ '⏳待审核' if sub.status == 'pending' else '✅已通过' if sub.status == 'approved' else '❌已驳回' }}</span>
+                    <span class="text-xs text-muted">{{ sub.created_at[:10] }}</span>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+                <a href="{{ url_for('admin.review_detail', sid=sub.id) }}" class="btn btn-outline btn-xs">查看详情</a>
+                {% if sub.status == 'pending' %}
+                <button class="btn btn-success btn-xs" onclick="approveOne({{ sub.id }})">通过</button>
+                <button class="btn btn-danger btn-xs" onclick="rejectOne({{ sub.id }})">驳回</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+    <a href="?page={{ page-1 }}&status={{ status_filter }}&catalog_id={{ catalog_filter }}&class_name={{ class_filter }}&search={{ search }}">上一页</a>
+    {% else %}
+    <span>上一页</span>
+    {% endif %}
+    <span>{{ page }} / {{ total_pages }}（共 {{ total_count }} 条）</span>
+    {% if page < total_pages %}
+    <a href="?page={{ page+1 }}&status={{ status_filter }}&catalog_id={{ catalog_filter }}&class_name={{ class_filter }}&search={{ search }}">下一页</a>
+    {% else %}
+    <span>下一页</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <p class="empty-state-text">暂无符合条件的申报记录</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/review.js') }}"></script>
+<script>
+function applyFilters() {
+    var status = document.getElementById('status-filter').value;
+    var catalog = document.getElementById('catalog-filter').value;
+    var search = document.getElementById('search-input').value;
+    var params = [];
+    if (status) params.push('status=' + status);
+    if (catalog) params.push('catalog_id=' + catalog);
+    if (search) params.push('search=' + encodeURIComponent(search));
+    window.location.href = '{{ url_for("admin.review_list") }}' + (params.length ? '?' + params.join('&') : '');
+}
+</script>
+{% endblock %}

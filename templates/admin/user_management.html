@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}用户管理 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('admin.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">用户管理</h1>
+</div>
+
+<!-- Search -->
+<div class="filter-bar">
+    <input type="text" class="form-input" id="user-search" placeholder="🔍 搜索姓名/学号/班级" value="{{ search }}"
+           onkeydown="if(event.key==='Enter')searchUsers()">
+    <button class="btn btn-outline btn-sm" onclick="searchUsers()" style="width:auto;flex-shrink:0;">搜索</button>
+</div>
+
+{% if users %}
+<div>
+    {% for u in users %}
+    <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="flex-1">
+                <div style="font-weight:600;font-size:0.9rem;">{{ u.name }}</div>
+                <div class="text-xs text-muted">{{ u.student_id }} · {{ u.class_name }}</div>
+                <div class="text-xs text-muted mt-1">
+                    申报数: {{ u.submission_count }}
+                    {% if u.qq %} · QQ: {{ u.qq }}{% endif %}
+                    {% if u.phone %} · 📱 {{ u.phone }}{% endif %}
+                </div>
+                <div class="text-xs text-muted">注册于: {{ u.created_at[:10] }}</div>
+            </div>
+            <button class="btn btn-xs {% if u.is_active %}btn-outline{% else %}btn-primary{% endif %}"
+                    onclick="toggleUser({{ u.id }}, {{ u.is_active }})"
+                    style="flex-shrink:0;">
+                {{ '禁用' if u.is_active else '启用' }}
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">👥</div>
+    <p class="empty-state-text">暂无注册学生</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function searchUsers() {
+    var q = document.getElementById('user-search').value.trim();
+    window.location.href = '{{ url_for("admin.user_management") }}?search=' + encodeURIComponent(q);
+}
+
+function toggleUser(uid, currentActive) {
+    var action = currentActive ? '禁用' : '启用';
+    confirmAction('确定要' + action + '该用户吗？', function() {
+        Loading.show('处理中...');
+        fetch('/api/admin/users/' + uid + '/toggle-active', {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            Loading.hide();
+            showToast(d.message, d.error ? 'error' : 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        });
+    });
+}
+</script>
+{% endblock %}

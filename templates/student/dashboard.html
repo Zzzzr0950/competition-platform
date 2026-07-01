@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}学生首页 - 竞享成果{% endblock %}
+{% block content %}
+
+<!-- Credit Summary Card -->
+<div class="card" style="text-align:center;margin-bottom:16px;">
+    <div style="font-size:0.85rem;color:var(--color-text-secondary);">🏅 学科竞赛学分</div>
+    <div class="stat-number" style="font-size:2.5rem;color:var(--color-primary);">{{ total_credits }}</div>
+    <div class="stat-label">学分（已通过申报合计）</div>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-number">{{ total }}</div>
+        <div class="stat-label">全部申报</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-warning);">{{ pending }}</div>
+        <div class="stat-label">审核中</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-success);">{{ approved }}</div>
+        <div class="stat-label">已通过</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-danger);">{{ rejected }}</div>
+        <div class="stat-label">已驳回</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-header">快捷操作</div>
+<div class="quick-actions">
+    <a href="{{ url_for('student.submit') }}" class="quick-action">
+        <span class="quick-action-icon">✏️</span>
+        <span>申报新获奖</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('student.my_submissions') }}" class="quick-action">
+        <span class="quick-action-icon">📄</span>
+        <span>查看我的申报记录</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('auth.change_password') }}" class="quick-action">
+        <span class="quick-action-icon">🔑</span>
+        <span>修改密码</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+</div>
+
+<!-- Recent Submissions -->
+{% if recent %}
+<div class="section-header">近期申报</div>
+{% for sub in recent %}
+<a href="/api/submissions/{{ sub.id }}" class="list-item" onclick="viewDetail(event, {{ sub.id }})">
+    <div class="list-item-body">
+        <div class="list-item-title">{{ sub.competition_name }} - {{ sub.award_level }}</div>
+        <div class="list-item-meta">
+            {{ sub.created_at[:10] }}
+            <span class="badge badge-{{ sub.status }} ml-1">
+                {% if sub.status == 'pending' %}审核中
+                {% elif sub.status == 'approved' %}已通过
+                {% else %}已驳回{% endif %}
+            </span>
+        </div>
+    </div>
+    <span class="list-item-arrow">›</span>
+</a>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <p class="empty-state-text">还没有申报记录</p>
+    <a href="{{ url_for('student.submit') }}" class="btn btn-primary mt-4" style="display:inline-flex;width:auto;">去申报</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewDetail(e, id) {
+    e.preventDefault();
+    window.location.href = '/submission/' + id;
+}
+</script>
+{% endblock %}

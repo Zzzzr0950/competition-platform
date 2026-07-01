@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}申报获奖 - 竞享成果{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <a href="{{ url_for('student.dashboard') }}" class="page-back">&lt;</a>
+    <h1 class="page-title">申报竞赛获奖</h1>
+</div>
+
+<form id="submit-form" enctype="multipart/form-data">
+    <!-- Competition Selection -->
+    <div class="card">
+        <div class="card-header">📋 竞赛信息</div>
+
+        <div class="form-group" id="group-catalog">
+            <label class="form-label"><span class="required">*</span> 选择竞赛</label>
+            <input type="text" class="form-input mb-2" id="catalog-search"
+                   placeholder="🔍 搜索或点击下方列表选择竞赛"
+                   oninput="filterCatalogAccordion()" autocomplete="off">
+            <input type="hidden" id="catalog_id" name="catalog_id" value="">
+            <div class="form-error">请选择2026竞赛目录内的赛事</div>
+
+            <!-- Accordion by level -->
+            {% set levels = ['超级', '一级', '二级', '三级'] %}
+            {% set level_colors = {'超级': '#dc2626', '一级': '#1a56db', '二级': '#d97706', '三级': '#6b7280'} %}
+            {% set level_badges = {'超级': 'badge-danger', '一级': 'badge-primary', '二级': 'badge-warning', '三级': 'badge-school'} %}
+
+            {% for lv in levels %}
+            {% set items = catalog | selectattr('level', 'equalto', lv) | list %}
+            {% if items %}
+            <div class="accordion-group" data-level="{{ lv }}">
+                <div class="accordion-header" onclick="toggleAccordion(this)" style="border-left-color:{{ level_colors[lv] }};">
+                    <span class="accordion-arrow">▶</span>
+                    <span class="badge badge-{{ lv }}">{{ lv }}</span>
+                    <span class="accordion-count">（{{ items|length }}项）</span>
+                </div>
+                <div class="accordion-body" style="display:none;">
+                    {% for c in items %}
+                    <div class="accordion-item"
+                         data-id="{{ c.id }}"
+                         data-name="{{ c.name }}"
+                         data-level="{{ c.level }}"
+                         data-key="{{ c.is_key_competition }}"
+                         onclick="selectCompetition(this)">
+                        <span class="accordion-item-name">{{ c.name }}</span>
+                        {% if c.is_key_competition %}<span class="badge badge-key">重点</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <div class="form-hint">仅限2026年学科竞赛目录内赛事，点击 ▶ 展开选择</div>
+        </div>
+
+        <div class="form-group" id="group-award_level">
+            <label class="form-label" for="award_level"><span class="required">*</span> 获奖等级</label>
+            <input type="text" class="form-input" id="award_level" name="award_level"
+                   placeholder="如：一等奖、金奖、特等奖、国家级二等奖..." required>
+            <div class="form-error">请输入获奖等级</div>
+        </div>
+
+        <div class="form-group" id="group-award_tier">
+            <label class="form-label" for="award_tier"><span class="required">*</span> 获奖层次</label>
+            <select class="form-select" id="award_tier" name="award_tier" required>
+                <option value="">-- 请选择获奖层次 --</option>
+                <option value="国家级">国家级</option>
+                <option value="省级">省级</option>
+            </select>
+            <div class="form-error">请选择获奖层次</div>
+            <div class="form-hint">用于自动计算学科竞赛学分</div>
+        </div>
+
+        <div class="form-group" id="group-award_date">
+            <label class="form-label" for="award_date"><span class="required">*</span> 获奖日期</label>
+            <input type="date" class="form-input" id="award_date" name="award_date" required>
+            <div class="form-error">请选择获奖日期</div>
+        </div>
+    </div>
+
+    <!-- Team Info -->
+    <div class="card">
+        <div class="card-header">👥 团队信息 <span class="text-xs text-muted">（个人参赛可跳过）</span></div>
+
+        <div class="form-group">
+            <label class="form-label" for="team_name">团队名称</label>
+            <input type="text" class="form-input" id="team_name" name="team_name"
+                   placeholder="如：求实创新队">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="team_members">团队成员</label>
+            <input type="text" class="form-input" id="team_members" name="team_members"
+                   placeholder="填写格式：学号 姓名，如：学号1 姓名1，学号2 姓名2">
+        </div>
+
+        <label class="form-checkbox">
+            <input type="checkbox" name="is_leader" id="is_leader" value="1">
+            <span>我是队长（团队负责人）</span>
+        </label>
+    </div>
+
+    <!-- Certificate Upload -->
+    <div class="card">
+        <div class="card-header">📎 证明材料</div>
+
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('certificate').click()">
+            <div class="upload-zone-icon" id="upload-icon">📷</div>
+            <div class="upload-zone-text" id="upload-text">点击上传获奖证书图片</div>
+            <div class="upload-zone-hint">支持 JPG、PNG、PDF 格式，不超过 10MB</div>
+            <input type="file" id="certificate" name="certificate" accept=".jpg,.jpeg,.png,.pdf"
+                   style="display:none;" onchange="previewImage(this)">
+        </div>
+        <div class="upload-preview" id="preview-container" style="display:none;">
+            <img id="preview-img" src="" alt="证书预览">
+            <button type="button" class="remove-preview" onclick="removePreview()">✕</button>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary" id="submit-btn">提 交 申 报</button>
+    <p class="text-xs text-center mt-2 text-muted">提交后将由管理员审核，请确保信息真实准确</p>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/submit.js') }}"></script>
+{% endblock %}

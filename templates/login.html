@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}登录 - 竞享成果{% endblock %}
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="auth-logo-icon">🏆</div>
+            <h1 class="auth-logo-title">竞享成果</h1>
+            <p class="auth-logo-subtitle">中北大学计算机科学与技术学院<br>学生竞赛获奖申报平台</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label class="form-label" for="student_id">学号</label>
+                <input type="text" class="form-input" id="student_id" name="student_id"
+                       placeholder="请输入学号" required autocomplete="username" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <input type="password" class="form-input" id="password" name="password"
+                       placeholder="请输入密码" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary">登 录</button>
+        </form>
+
+        <div class="auth-footer">
+            还没有账号？<a href="{{ url_for('auth.register') }}">立即注册</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

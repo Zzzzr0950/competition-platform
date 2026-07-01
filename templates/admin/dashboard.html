@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}管理后台 - 竞享成果{% endblock %}
+{% block content %}
+
+<!-- Welcome -->
+<div class="card" style="text-align:center;">
+    <div style="font-size:2rem;margin-bottom:4px;">🏛️</div>
+    <h2 style="font-size:1.1rem;">管理后台</h2>
+    <p class="text-sm text-muted">中北大学计算机科学与技术学院</p>
+</div>
+
+<!-- Stat Cards -->
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-warning);">{{ pending }}</div>
+        <div class="stat-label">待审核</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ today }}</div>
+        <div class="stat-label">今日新增</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color:var(--color-success);">{{ approved_this_month }}</div>
+        <div class="stat-label">本月通过</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ total }}</div>
+        <div class="stat-label">总申报数</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="section-header">管理功能</div>
+<div class="quick-actions">
+    <a href="{{ url_for('admin.review_list') }}" class="quick-action">
+        <span class="quick-action-icon">🔍</span>
+        <span>审核申报</span>
+        {% if pending > 0 %}
+        <span class="badge badge-pending" style="margin-left:8px;">{{ pending }}条待处理</span>
+        {% endif %}
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('admin.statistics') }}" class="quick-action">
+        <span class="quick-action-icon">📊</span>
+        <span>数据统计</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('admin.manage_catalog') }}" class="quick-action">
+        <span class="quick-action-icon">📋</span>
+        <span>竞赛目录管理</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('admin.user_management') }}" class="quick-action">
+        <span class="quick-action-icon">👥</span>
+        <span>用户管理</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+    <a href="{{ url_for('admin.export_csv') }}" class="quick-action">
+        <span class="quick-action-icon">📥</span>
+        <span>导出CSV报表</span>
+        <span class="quick-action-arrow">›</span>
+    </a>
+</div>
+
+{% endblock %}
