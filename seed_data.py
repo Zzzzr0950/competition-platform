@@ -15,7 +15,7 @@ def seed_if_empty():
     if admin is None:
         conn.execute(
             "INSERT INTO users (student_id, name, class_name, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-            ("admin", "系统管理员", "计算机科学与技术学院", hash_password("admin123"), "admin")
+            ("admin", "系统管理员", "计算机科学与技术学院", hash_password("Nuc@2026#Ad1"), "admin")
         )
         conn.commit()
         print("[Seed] 默认管理员账号已创建: admin / admin123")

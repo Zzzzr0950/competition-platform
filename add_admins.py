@@ -5,11 +5,11 @@ from auth_utils import hash_password
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database', 'platform.db')
 
 admins = [
-    ('admin2', '管理员2', 'admin123'),
-    ('admin3', '管理员3', 'admin123'),
-    ('admin4', '管理员4', 'admin123'),
-    ('admin5', '管理员5', 'admin123'),
-    ('admin6', '管理员6', 'admin123'),
+    ('admin2', '管理员2', 'Jxcg@2026#Op2'),
+    ('admin3', '管理员3', 'Kjcx@2026#Mn3'),
+    ('admin4', '管理员4', 'Xssb@2026#Qw4'),
+    ('admin5', '管理员5', 'Ydjy@2026#Zx5'),
+    ('admin6', '管理员6', 'Glpt@2026#Lk6'),
 ]
 
 conn = sqlite3.connect(DB_PATH)
