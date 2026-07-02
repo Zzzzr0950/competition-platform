@@ -108,39 +108,35 @@
 .auth-card {
     background: var(--color-white);
     border-radius: var(--radius-lg);
+    padding: 28px 11px 24px 22px;
     width: calc(100% - 40px);
     max-width: 420px;
     box-shadow: 0 12px 60px rgba(0,0,0,0.35);
     position: relative;
     z-index: 10;
     max-height: 92vh;
-    overflow: hidden;
-}
-/* 外层 direction:rtl 把滚动条移到左侧 */
-.auth-scroll {
-    max-height: 92vh;
     overflow-y: auto;
-    direction: rtl;
-    padding-left: 4px;
+    overflow-x: hidden;
 }
-/* 内层恢复文字方向 */
-.auth-card-inner {
-    padding: 28px 22px 24px;
-    direction: ltr;
-}
-/* 细滚动条 */
-.auth-scroll::-webkit-scrollbar {
+/* 极细短滚动条——贴在卡片右侧内部 */
+.auth-card::-webkit-scrollbar {
     width: 4px;
 }
-.auth-scroll::-webkit-scrollbar-track {
+.auth-card::-webkit-scrollbar-track {
     background: transparent;
+    margin: 20px 0;
 }
-.auth-scroll::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.15);
+.auth-card::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.18);
     border-radius: 2px;
 }
-.auth-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.25);
+.auth-card::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.30);
+}
+/* Firefox 细滚动条 */
+.auth-card {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.18) transparent;
 }
 
 /* Logo row */
@@ -231,8 +227,6 @@
     <div class="bubble"></div>
 
     <div class="auth-card">
-        <div class="auth-scroll">
-        <div class="auth-card-inner">
         <!-- Logo + School Name -->
         <div class="logo-row">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
@@ -296,8 +290,6 @@
         <div class="auth-footer">
             已有账号？<a href="{{ url_for('auth.login') }}">返回登录</a>
         </div>
-        </div><!-- .auth-card-inner -->
-        </div><!-- .auth-scroll -->
     </div>
 </div>
 {% endblock %}
