@@ -328,12 +328,18 @@ body {
     padding-right: 36px;
 }
 
-/* Date input — use native picker, prevent overflow on mobile */
+/* Date input — use native picker, match other inputs width */
 input[type="date"].form-input {
     -webkit-appearance: auto;
     appearance: auto;
     min-width: 0;
-    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Prevent form inputs from overflowing card on mobile */
+.card {
+    overflow: hidden;
 }
 
 /* Listbox-style select (with size attr) — hide dropdown arrow, clear highlight */
