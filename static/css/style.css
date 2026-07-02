@@ -328,13 +328,10 @@ body {
     padding-right: 36px;
 }
 
-/* Date input — keep native picker, make it bigger */
+/* Date input — use native picker, same size as other inputs */
 input[type="date"].form-input {
     -webkit-appearance: auto;
     appearance: auto;
-    min-height: 52px;
-    font-size: 1rem;
-    padding: 14px 16px;
 }
 
 /* Listbox-style select (with size attr) — hide dropdown arrow, clear highlight */
