@@ -108,12 +108,16 @@
 .auth-card {
     background: var(--color-white);
     border-radius: var(--radius-lg);
-    padding: 28px 22px 24px;
     width: calc(100% - 40px);
     max-width: 420px;
     box-shadow: 0 12px 60px rgba(0,0,0,0.35);
     position: relative;
     z-index: 10;
+    max-height: 92vh;
+    overflow: hidden;
+}
+.auth-card-inner {
+    padding: 28px 22px 24px;
     max-height: 92vh;
     overflow-y: auto;
 }
@@ -206,6 +210,7 @@
     <div class="bubble"></div>
 
     <div class="auth-card">
+        <div class="auth-card-inner">
         <!-- Logo + School Name -->
         <div class="logo-row">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
@@ -269,6 +274,7 @@
         <div class="auth-footer">
             已有账号？<a href="{{ url_for('auth.login') }}">返回登录</a>
         </div>
+        </div><!-- .auth-card-inner -->
     </div>
 </div>
 {% endblock %}
