@@ -186,47 +186,9 @@
     margin-bottom: 16px;
 }
 
-/* 消息条——在白框上方，不重叠 */
-.auth-flash {
-    width: calc(100% - 40px);
-    max-width: 420px;
-    margin-bottom: 12px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-align: center;
-    position: relative;
-    z-index: 10;
-    animation: flashIn 0.3s ease-out;
-}
-.auth-flash-warning {
-    background: rgba(255,255,255,0.92);
-    color: #b45309;
-    border-left: 3px solid #f59e0b;
-}
-.auth-flash-error {
-    background: rgba(255,255,255,0.92);
-    color: #dc2626;
-    border-left: 3px solid #ef4444;
-}
-.auth-flash-success {
-    background: rgba(255,255,255,0.92);
-    color: #059669;
-    border-left: 3px solid #10b981;
-}
-.auth-flash-info {
-    background: rgba(255,255,255,0.92);
-    color: #2563eb;
-    border-left: 3px solid #3b82f6;
-}
-@keyframes flashIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-/* 隐藏全局 toast，避免和卡片重叠 */
+/* Toast 在注册页显示在卡片上方 */
 #toast-container {
-    display: none;
+    top: 5%;
 }
 </style>
 
@@ -268,15 +230,6 @@
     <div class="bubble"></div>
     <div class="bubble"></div>
     <div class="bubble"></div>
-
-    <!-- Flash Messages——在白框上方 -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="auth-flash auth-flash-{{ category }}">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
 
     <div class="auth-card">
         <!-- Logo + School Name -->
