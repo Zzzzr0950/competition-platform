@@ -1,19 +1,222 @@
 {% extends "base.html" %}
 {% block title %}注册 - 竞享成果{% endblock %}
 {% block content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&display=swap');
+
+.auth-page {
+    padding-top: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #0d3b7a 0%, #1555b8 25%, #1c6de0 50%, #155cc9 75%, #0f47a0 100%);
+    overflow: hidden;
+}
+
+/* === Ocean waves (SVG shape) === */
+.wave-container {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 260px;
+    overflow: hidden;
+}
+.wave-svg {
+    position: absolute;
+    bottom: 0;
+    width: 200%;
+    height: 100%;
+}
+.wave-svg.w1 {
+    animation: waveMove 12s linear infinite;
+    opacity: 0.25;
+    bottom: 20px;
+}
+.wave-svg.w2 {
+    animation: waveMove 8s linear infinite reverse;
+    opacity: 0.18;
+    bottom: 0;
+}
+.wave-svg.w3 {
+    animation: waveMove 15s linear infinite;
+    opacity: 0.12;
+    bottom: -10px;
+}
+@keyframes waveMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* === Floating competition elements === */
+.float-el {
+    position: absolute;
+    font-size: 1.8rem;
+    opacity: 0.3;
+    animation: float 9s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+    pointer-events: none;
+}
+.float-el:nth-child(4)  { top: 8%;  left: 6%;  animation-delay: 0s;   font-size:2.2rem; }
+.float-el:nth-child(5)  { top: 18%; right:8%;  animation-delay: 0.8s; font-size:1.5rem; }
+.float-el:nth-child(6)  { top: 45%; left: 4%;  animation-delay: 1.6s; font-size:2.4rem; }
+.float-el:nth-child(7)  { top: 55%; right:6%;  animation-delay: 2.4s; font-size:1.7rem; }
+.float-el:nth-child(8)  { top: 25%; left: 82%; animation-delay: 3.2s; font-size:1.4rem; }
+.float-el:nth-child(9)  { top: 72%; left: 12%; animation-delay: 4s;   font-size:2rem; }
+.float-el:nth-child(10) { top: 12%; left: 40%; animation-delay: 4.8s; font-size:1.3rem; }
+.float-el:nth-child(11) { top: 68%; right:22%; animation-delay: 5.6s; font-size:1.8rem; }
+.float-el:nth-child(12) { top: 35%; left: 35%; animation-delay: 6.4s; font-size:1.6rem; }
+.float-el:nth-child(13) { top: 80%; left: 55%; animation-delay: 7.2s; font-size:1.5rem; }
+.float-el:nth-child(14) { top: 5%;  right:30%; animation-delay: 8s;   font-size:1.2rem; }
+
+@keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    33%  { transform: translateY(-24px) rotate(6deg); }
+    66%  { transform: translateY(12px) rotate(-4deg); }
+}
+
+/* === Bubbles === */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    animation: bubbleUp 6s ease-in infinite;
+    pointer-events: none;
+}
+.bubble:nth-child(15) { width:18px;height:18px;left:10%;bottom:-30px;animation-delay:0s;animation-duration:7s; }
+.bubble:nth-child(16) { width:24px;height:24px;left:25%;bottom:-40px;animation-delay:1s;animation-duration:8s; }
+.bubble:nth-child(17) { width:12px;height:12px;left:40%;bottom:-20px;animation-delay:2s;animation-duration:5s; }
+.bubble:nth-child(18) { width:30px;height:30px;left:55%;bottom:-50px;animation-delay:0.5s;animation-duration:9s; }
+.bubble:nth-child(19) { width:15px;height:15px;left:70%;bottom:-35px;animation-delay:2.5s;animation-duration:6s; }
+.bubble:nth-child(20) { width:20px;height:20px;left:85%;bottom:-25px;animation-delay:1.5s;animation-duration:7.5s; }
+.bubble:nth-child(21) { width:10px;height:10px;left:15%;bottom:-15px;animation-delay:3s;animation-duration:5.5s; }
+.bubble:nth-child(22) { width:26px;height:26px;left:48%;bottom:-60px;animation-delay:3.5s;animation-duration:8.5s; }
+.bubble:nth-child(23) { width:14px;height:14px;left:62%;bottom:-45px;animation-delay:4s;animation-duration:6.5s; }
+.bubble:nth-child(24) { width:22px;height:22px;left:78%;bottom:-55px;animation-delay:4.5s;animation-duration:7s; }
+
+@keyframes bubbleUp {
+    0% { transform: translateY(0) scale(1); opacity: 0.6; }
+    50% { opacity: 0.3; }
+    100% { transform: translateY(-110vh) scale(0.4); opacity: 0; }
+}
+
+/* === Card === */
+.auth-card {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: 28px 22px 24px;
+    width: calc(100% - 40px);
+    max-width: 420px;
+    box-shadow: 0 12px 60px rgba(0,0,0,0.35);
+    position: relative;
+    z-index: 10;
+    max-height: 92vh;
+    overflow-y: auto;
+}
+
+/* Logo row */
+.logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.logo-row img {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.15));
+}
+.logo-text {
+    text-align: center;
+    line-height: 1.2;
+}
+.cn-name {
+    font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0b3d91;
+    letter-spacing: 1px;
+}
+.en-name {
+    font-family: 'Georgia', serif;
+    font-size: 0.65rem;
+    color: #4b6fb7;
+    letter-spacing: 0.3px;
+}
+
+/* Title */
+.platform-title {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 2px;
+}
+.platform-sub {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+}
+</style>
+
 <div class="auth-page">
+    <!-- Ocean waves SVG -->
+    <div class="wave-container">
+        <svg class="wave-svg w1" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.3)" d="M0,120 C240,80 480,160 720,100 C960,40 1200,140 1440,90 C1680,40 1920,130 2160,100 C2400,70 2640,150 2880,90 L2880,200 L0,200 Z"/>
+        </svg>
+        <svg class="wave-svg w2" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.25)" d="M0,80 C300,120 600,60 900,100 C1200,140 1500,70 1800,90 C2100,110 2400,60 2880,80 L2880,200 L0,200 Z"/>
+        </svg>
+        <svg class="wave-svg w3" viewBox="0 0 2880 200" preserveAspectRatio="none">
+            <path fill="rgba(255,255,255,0.18)" d="M0,90 C200,60 500,130 800,80 C1100,30 1400,120 1700,95 C2000,70 2300,140 2600,85 C2750,60 2820,100 2880,85 L2880,200 L0,200 Z"/>
+        </svg>
+    </div>
+
+    <!-- Floating competition elements -->
+    <span class="float-el">🏅</span>
+    <span class="float-el">💡</span>
+    <span class="float-el">🎯</span>
+    <span class="float-el">🏆</span>
+    <span class="float-el">💻</span>
+    <span class="float-el">⭐</span>
+    <span class="float-el">📊</span>
+    <span class="float-el">🔬</span>
+    <span class="float-el">🥇</span>
+    <span class="float-el">📱</span>
+    <span class="float-el">🚀</span>
+
+    <!-- Bubbles -->
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+
     <div class="auth-card">
-        <div class="auth-logo">
-            <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽" style="width:52px;height:52px;flex-shrink:0;">
-                <div style="text-align:center;line-height:1.2;">
-                    <div style="font-family:'Noto Serif SC','STSong',serif;font-size:1.1rem;font-weight:700;color:#0b3d91;letter-spacing:1px;">计算机科学与技术学院</div>
-                    <div style="font-family:'Georgia',serif;font-size:0.7rem;color:#4b6fb7;letter-spacing:0.5px;">School of Computer Science and Technology NUC</div>
-                </div>
+        <!-- Logo + School Name -->
+        <div class="logo-row">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="院徽">
+            <div class="logo-text">
+                <div class="cn-name">计算机科学与技术学院</div>
+                <div class="en-name">School of Computer Science and Technology NUC</div>
             </div>
-            <h1 class="auth-logo-title">注册账号</h1>
-            <p class="auth-logo-subtitle">请使用真实学号注册，管理员将核实信息</p>
         </div>
+
+        <div class="platform-title">注册账号</div>
+        <div class="platform-sub">请使用真实学号注册，管理员将核实信息</div>
 
         <form method="POST" class="auth-form">
             <div class="form-group">
