@@ -212,19 +212,18 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
 
 /**
  * Horizontal bar chart for competition names
- * Long names auto-wrap to two lines with smaller font
+ * All bars same width, labels dynamically sized to fit
  */
 function drawHorizontalBarChart(containerId, labels, values) {
     var container = document.getElementById(containerId);
     if (!container) return;
 
-    // Use wider canvas so labels and bars have room; container scrolls if needed
     container.style.overflowX = 'auto';
-    var minWidth = 500;
-    var canvasWidth = Math.max(container.clientWidth || 350, minWidth);
 
+    // Use a generous canvas width
+    var canvasW = Math.max(container.clientWidth || 350, 600);
     var canvas = document.createElement('canvas');
-    canvas.width = canvasWidth;
+    canvas.width = canvasW;
     canvas.style.display = 'block';
     var ctx = canvas.getContext('2d');
     if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
@@ -235,102 +234,80 @@ function drawHorizontalBarChart(containerId, labels, values) {
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
-        canvas.style.width = '100%';
-        canvas.style.height = '220px';
         container.innerHTML = '';
         container.appendChild(canvas);
         return;
     }
 
-    // Left area width for labels — enough for ~13 Chinese chars
-    var labelAreaWidth = 140;
+    // First pass: measure all labels to determine needed left padding
+    var maxLabelW = 0;
+    ctx.font = '11px sans-serif';
+    labels.forEach(function(l) { var w = ctx.measureText(l).width; if (w > maxLabelW) maxLabelW = w; });
+    var labelArea = Math.min(maxLabelW + 20, 250);  // cap at 250px
 
-    // Determine which labels need wrapping and split them
+    // Wrap labels that exceed label area
     var wrappedLabels = labels.map(function(label) {
         ctx.font = '11px sans-serif';
-        var fullWidth = ctx.measureText(label).width;
-        if (fullWidth <= labelAreaWidth - 10) {
+        if (ctx.measureText(label).width <= labelArea - 10) {
             return { lines: [label], singleLine: true };
         }
-        // Need two lines — split Chinese text roughly in half
-        // Also try splitting at a natural boundary like · or （
+        // Split into two lines at natural break point
         var half = Math.ceil(label.length / 2);
-        // Look for natural break points near the middle
-        var breakChars = ['·', '（', '(', '）', ')', '、', '—', '-', ' '];
-        var best = half;
+        var breaks = ['·', '（', '(', '）', ')', '、', '—', '-', ' '];
         for (var j = Math.max(0, half - 4); j < Math.min(label.length, half + 4); j++) {
-            if (breakChars.indexOf(label[j]) !== -1) { best = j + 1; break; }
+            if (breaks.indexOf(label[j]) !== -1) { half = j + 1; break; }
         }
-        // If no natural break found, just split at half (character boundary)
-        if (best === half) {
-            best = Math.ceil(label.length / 2);
-        }
-        var line1 = label.slice(0, best);
-        var line2 = label.slice(best);
-        return { lines: [line1, line2], singleLine: false };
+        return { lines: [label.slice(0, half), label.slice(half)], singleLine: false };
     });
 
-    // Calculate row heights
-    var singleRowH = 28;
-    var doubleRowH = 38;
-    var gap = 4;
-    var totalHeight = 0;
-    var rowHeights = wrappedLabels.map(function(w) {
-        var h = w.singleLine ? singleRowH : doubleRowH;
-        totalHeight += h + gap;
-        return h;
-    });
-    totalHeight -= gap; // remove last gap
+    // Row heights
+    var singleH = 28, doubleH = 38, gap = 4;
+    var rowHeights = wrappedLabels.map(function(w) { return w.singleLine ? singleH : doubleH; });
+    var totalH = rowHeights.reduce(function(a, b) { return a + b + gap; }, -gap);
 
-    var padding = { top: 10, right: 40, bottom: 10, left: labelAreaWidth };
-    canvas.height = Math.max(220, padding.top + totalHeight + padding.bottom);
+    var pad = { top: 10, right: 50, bottom: 10, left: labelArea };
+    canvas.height = Math.max(220, pad.top + totalH + pad.bottom);
     canvas.style.height = canvas.height + 'px';
     container.innerHTML = '';
     container.appendChild(canvas);
 
-    // Re-create context after canvas resize
     ctx = canvas.getContext('2d');
-    var chartW = canvas.width - padding.left - padding.right;
 
-    var maxVal = Math.max.apply(null, values);
-    maxVal = Math.ceil(maxVal * 1.15) || 1;
+    // All bars same width — fill the remaining space
+    var barW = canvasW - pad.left - pad.right;
+    var barH = 20;
 
-    // Get bar colors (more colors for differentiation)
-    var barColors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
-                     '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
+    var colors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
+                  '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
 
-    var currentY = padding.top;
+    var y = pad.top;
     wrappedLabels.forEach(function(w, i) {
         var rowH = rowHeights[i];
-        var barH = Math.min(w.singleLine ? 22 : 28, rowH - 6);
-        var wVal = (values[i] / maxVal) * chartW;
+        var barY = y + (rowH - barH) / 2;
 
-        // Center the bar vertically in this row
-        var barY = currentY + (rowH - barH) / 2;
-
-        // Draw label (one or two lines)
+        // Label — right-aligned in label area
         ctx.textAlign = 'right';
         if (w.singleLine) {
             ctx.fillStyle = '#374151';
             ctx.font = '11px sans-serif';
-            ctx.fillText(w.lines[0], padding.left - 10, currentY + rowH / 2 + 4);
+            ctx.fillText(w.lines[0], pad.left - 10, y + rowH / 2 + 4);
         } else {
             ctx.fillStyle = '#374151';
             ctx.font = '9px sans-serif';
-            ctx.fillText(w.lines[0], padding.left - 10, currentY + rowH * 0.35 + 3);
-            ctx.fillText(w.lines[1], padding.left - 10, currentY + rowH * 0.75 + 3);
+            ctx.fillText(w.lines[0], pad.left - 10, y + rowH * 0.35 + 3);
+            ctx.fillText(w.lines[1], pad.left - 10, y + rowH * 0.75 + 3);
         }
 
-        // Bar
-        ctx.fillStyle = barColors[i % barColors.length];
-        ctx.fillRect(padding.left, barY, wVal, barH);
+        // Bar — uniform width
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fillRect(pad.left, barY, barW, barH);
 
-        // Value
-        ctx.fillStyle = '#1f2937';
+        // Value — right-aligned inside bar
+        ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(values[i], padding.left + wVal + 6, barY + barH / 2 + 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(values[i], pad.left + barW - 8, barY + barH / 2 + 4);
 
-        currentY += rowH + gap;
+        y += rowH + gap;
     });
 }
