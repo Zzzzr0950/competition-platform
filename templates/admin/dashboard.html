@@ -55,11 +55,52 @@
         <span>用户管理</span>
         <span class="quick-action-arrow">›</span>
     </a>
-    <a href="{{ url_for('admin.export_csv') }}" class="quick-action">
-        <span class="quick-action-icon">📥</span>
-        <span>导出CSV报表</span>
-        <span class="quick-action-arrow">›</span>
-    </a>
 </div>
 
+<!-- Export Section -->
+<div class="card mt-4">
+    <div class="card-header">📥 导出 CSV 报表</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select id="export-class" class="form-select" style="flex:1;min-width:140px;">
+            <option value="">全部班级</option>
+        </select>
+        <button id="export-btn" class="btn btn-primary btn-sm" style="flex-shrink:0;width:auto;" onclick="doExport()">
+            导出
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fetchJSON(url) {
+    return fetch(url, { credentials: 'same-origin' })
+        .then(function(res) {
+            if (res.redirected || res.status === 302) throw new Error('SESSION_EXPIRED');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        });
+}
+function loadClassOptions() {
+    var select = document.getElementById('export-class');
+    if (!select) return;
+    fetchJSON('/api/admin/statistics/by-class')
+        .then(function(data) {
+            data.forEach(function(d) {
+                var opt = document.createElement('option');
+                opt.value = d.class_name;
+                opt.textContent = d.class_name + ' (' + d.count + '条)';
+                select.appendChild(opt);
+            });
+        });
+}
+function doExport() {
+    var className = document.getElementById('export-class').value;
+    var url = '/api/admin/export';
+    if (className) url += '?class_name=' + encodeURIComponent(className);
+    window.location.href = url;
+}
+document.addEventListener('DOMContentLoaded', loadClassOptions);
+</script>
 {% endblock %}

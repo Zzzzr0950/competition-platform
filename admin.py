@@ -310,14 +310,17 @@ def statistics_by_class():
 @admin_bp.route('/api/admin/export')
 @admin_required
 def export_csv():
-    """Export submissions as CSV file, optionally filtered by class."""
+    """Export submissions as CSV file, optionally filtered by class.
+    Same student's 学号/姓名/班级/总学分 merged into one cell (written once).
+    """
     class_name = request.args.get('class_name', '').strip()
 
     sql = """
-        SELECT u.student_id, u.name as student_name, u.class_name,
+        SELECT u.id as uid, u.student_id, u.name as student_name, u.class_name,
                c.name as competition_name, c.level as competition_level,
                s.award_level, s.award_date, s.team_name, s.team_members,
                s.status, s.review_comment, s.created_at, s.reviewed_at,
+               s.credits,
                COALESCE((SELECT SUM(s2.credits) FROM submissions s2
                           WHERE s2.user_id = u.id AND s2.status = 'approved'), 0) as total_credits
         FROM submissions s
@@ -339,23 +342,55 @@ def export_csv():
     writer.writerow([
         '学号', '姓名', '班级', '竞赛名称', '竞赛级别',
         '获奖等级', '获奖日期', '团队名称', '团队成员',
-        '审核状态', '审核意见', '提交时间', '审核时间', '总学分'
+        '审核状态', '审核意见', '提交时间', '审核时间',
+        '学分', '总学分'
     ])
 
+    last_uid = None
     for r in rows:
         created = r['created_at'] or ''
         reviewed = r['reviewed_at'] or ''
-        writer.writerow([
-            '\t' + (r['student_id'] or ''),
-            r['student_name'], r['class_name'],
-            r['competition_name'], r['competition_level'],
-            r['award_level'], r['award_date'], r['team_name'], r['team_members'],
-            {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
-            r['review_comment'],
-            created.replace(' ', 'T'),
-            reviewed.replace(' ', 'T') if reviewed else '',
-            r['total_credits']
-        ])
+        uid = r['uid']
+
+        if uid != last_uid:
+            # First row of this student: write all columns
+            writer.writerow([
+                '\t' + (r['student_id'] or ''),
+                r['student_name'],
+                r['class_name'],
+                r['competition_name'],
+                r['competition_level'],
+                r['award_level'],
+                r['award_date'],
+                r['team_name'],
+                r['team_members'],
+                {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
+                r['review_comment'],
+                created.replace(' ', 'T'),
+                reviewed.replace(' ', 'T') if reviewed else '',
+                r['credits'],
+                r['total_credits']
+            ])
+            last_uid = uid
+        else:
+            # Same student: leave 学号/姓名/班级/总学分 empty (merged)
+            writer.writerow([
+                '',  # 学号 merged
+                '',  # 姓名 merged
+                '',  # 班级 merged
+                r['competition_name'],
+                r['competition_level'],
+                r['award_level'],
+                r['award_date'],
+                r['team_name'],
+                r['team_members'],
+                {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
+                r['review_comment'],
+                created.replace(' ', 'T'),
+                reviewed.replace(' ', 'T') if reviewed else '',
+                r['credits'],
+                ''   # 总学分 merged
+            ])
 
     filename = f'competition_export{("_" + class_name) if class_name else ""}.csv'
     output.seek(0)
