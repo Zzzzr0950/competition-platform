@@ -506,9 +506,9 @@ select.form-select[size] option:hover {
 .badge-approved   { background: var(--color-success-light); color: var(--color-success); }
 .badge-rejected   { background: var(--color-danger-light); color: var(--color-danger); }
 .badge-key        { background: #fef3c7; color: #b45309; }
-.badge-national   { background: #ede9fe; color: #6d28d9; }
-.badge-provincial { background: #dbeafe; color: #1d4ed8; }
-.badge-school     { background: #f3f4f6; color: #4b5563; }
+.badge-national   { background: #fef2f2; color: #dc2626; font-weight:600; }
+.badge-provincial { background: #fff7ed; color: #ea580c; font-weight:600; }
+.badge-school     { background: #f3f4f6; color: #6b7280; }
 
 /* ===== Filter Tabs ===== */
 .filter-tabs {
@@ -1069,9 +1069,9 @@ select.form-select[size] option:hover {
 
 /* Level badges */
 .badge-超级 { background: #fef2f2; color: #dc2626; font-weight:600; }
-.badge-一级 { background: #eff6ff; color: #1a56db; font-weight:600; }
+.badge-一级 { background: #fef2f2; color: #dc2626; font-weight:600; }
 .badge-二级 { background: #fffbeb; color: #d97706; font-weight:600; }
-.badge-三级 { background: #f3f4f6; color: #6b7280; font-weight:600; }
+.badge-三级 { background: #fff7ed; color: #c2410c; font-weight:600; }
 
 /* ===== Desktop (tablet+) enhancements ===== */
 @media (min-width: 768px) {
