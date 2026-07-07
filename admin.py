@@ -3,7 +3,9 @@
 import csv
 import io
 from flask import (Blueprint, render_template, request, redirect,
-                   url_for, session, flash, jsonify, Response)
+                   url_for, session, flash, jsonify, Response, send_file)
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
 from models import query_db, execute_db
 from auth_utils import login_required, admin_required, get_current_user
 
@@ -337,67 +339,115 @@ def export_csv():
 
     rows = query_db(sql, params)
 
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow([
-        '学号', '姓名', '班级', '竞赛名称', '竞赛级别',
-        '获奖等级', '获奖日期', '团队名称', '团队成员',
-        '审核状态', '审核意见', '提交时间', '审核时间',
-        '学分', '总学分'
-    ])
+    # Build Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = '竞赛获奖导出'
 
-    last_uid = None
+    # Styles
+    header_fill = PatternFill(start_color='1A56DB', end_color='1A56DB', fill_type='solid')
+    header_font = Font(name='微软雅黑', bold=True, size=11, color='FFFFFF')
+    cell_font = Font(name='微软雅黑', size=10)
+    center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    left_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    thin_border = Border(
+        left=Side(style='thin', color='D1D5DB'),
+        right=Side(style='thin', color='D1D5DB'),
+        top=Side(style='thin', color='D1D5DB'),
+        bottom=Side(style='thin', color='D1D5DB'),
+    )
+
+    # Header
+    headers = ['学号', '姓名', '竞赛名称', '竞赛级别',
+               '获奖等级', '获奖日期', '团队名称', '团队成员',
+               '审核状态', '审核意见', '提交时间', '审核时间',
+               '学分', '总学分']
+    for col_idx, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=h)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_align
+        cell.border = thin_border
+
+    # Column widths
+    widths = [16, 10, 36, 10, 18, 14, 18, 22, 10, 22, 20, 20, 8, 8]
+    for i, w in enumerate(widths, 1):
+        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = w
+
+    # Group by student
+    student_groups = {}
+    student_order = []
     for r in rows:
-        created = r['created_at'] or ''
-        reviewed = r['reviewed_at'] or ''
         uid = r['uid']
+        if uid not in student_groups:
+            student_groups[uid] = {
+                'student_id': r['student_id'],
+                'name': r['student_name'],
+                'total_credits': r['total_credits'],
+                'submissions': []
+            }
+            student_order.append(uid)
+        student_groups[uid]['submissions'].append(r)
 
-        if uid != last_uid:
-            # First row of this student: write all columns
-            writer.writerow([
-                '\t' + (r['student_id'] or ''),
-                r['student_name'],
-                r['class_name'],
+    # Write data rows
+    status_map = {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}
+    row_num = 2
+
+    for uid in student_order:
+        stu = student_groups[uid]
+        subs = stu['submissions']
+        start_row = row_num
+        end_row = row_num + len(subs) - 1
+
+        for idx, r in enumerate(subs):
+            created = r['created_at'] or ''
+            reviewed = r['reviewed_at'] or ''
+
+            vals = [
+                r['student_id'],
+                stu['name'],
                 r['competition_name'],
                 r['competition_level'],
                 r['award_level'],
                 r['award_date'],
                 r['team_name'],
                 r['team_members'],
-                {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
+                status_map.get(r['status'], r['status']),
                 r['review_comment'],
-                created.replace(' ', 'T'),
+                created.replace(' ', 'T') if created else '',
                 reviewed.replace(' ', 'T') if reviewed else '',
                 r['credits'],
-                r['total_credits']
-            ])
-            last_uid = uid
-        else:
-            # Same student: leave 学号/姓名/班级/总学分 empty (merged)
-            writer.writerow([
-                '',  # 学号 merged
-                '',  # 姓名 merged
-                '',  # 班级 merged
-                r['competition_name'],
-                r['competition_level'],
-                r['award_level'],
-                r['award_date'],
-                r['team_name'],
-                r['team_members'],
-                {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
-                r['review_comment'],
-                created.replace(' ', 'T'),
-                reviewed.replace(' ', 'T') if reviewed else '',
-                r['credits'],
-                ''   # 总学分 merged
-            ])
+                stu['total_credits'],
+            ]
 
-    filename = f'competition_export{("_" + class_name) if class_name else ""}.csv'
+            for col_idx, val in enumerate(vals, 1):
+                cell = ws.cell(row=row_num, column=col_idx, value=val)
+                cell.font = cell_font
+                cell.border = thin_border
+                cell.alignment = left_align if col_idx in (3, 10) else center_align
+
+            row_num += 1
+
+        # Merge cells for 学号/姓名/总学分
+        if len(subs) > 1:
+            for merge_col in [1, 2, 14]:
+                ws.merge_cells(start_row=start_row, start_column=merge_col,
+                              end_row=end_row, end_column=merge_col)
+
+    # Freeze header row
+    ws.freeze_panes = 'A2'
+
+    # Save
+    output = io.BytesIO()
+    wb.save(output)
     output.seek(0)
-    return Response(
-        output.getvalue().encode('utf-8-sig'),
-        mimetype='text/csv',
-        headers={'Content-Disposition': f'attachment;filename={filename}'}
+
+    filename = f'competition_export{("_" + class_name) if class_name else ""}.xlsx'
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
     )
 
 
