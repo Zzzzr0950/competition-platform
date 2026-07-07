@@ -339,13 +339,19 @@ def export_csv():
     ])
 
     for r in rows:
+        # Format dates: keep full datetime for accuracy, Excel will need column widened
+        created = r['created_at'] or ''
+        reviewed = r['reviewed_at'] or ''
         writer.writerow([
-            r['student_id'], r['student_name'], r['class_name'],
+            '\t' + (r['student_id'] or ''),  # \t prefix forces Excel to treat as text
+            r['student_name'], r['class_name'],
             r['competition_name'], r['competition_level'],
             '是' if r['is_key_competition'] else '否',
             r['award_level'], r['award_date'], r['team_name'], r['team_members'],
             {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
-            r['review_comment'], r['created_at'], r['reviewed_at'] or ''
+            r['review_comment'],
+            created.replace(' ', 'T'),   # ISO format easier for Excel parsing
+            reviewed.replace(' ', 'T') if reviewed else ''
         ])
 
     output.seek(0)
