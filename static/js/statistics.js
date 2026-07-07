@@ -101,7 +101,8 @@ function loadByClass() {
 }
 
 /**
- * Vertical bar chart
+ * Vertical bar chart — used by "按竞赛级别" and "按班级"
+ * Labels are horizontal, font auto-shrinks to fit bar width
  */
 function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
     var container = document.getElementById(containerId);
@@ -109,9 +110,9 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
 
     var canvas = document.createElement('canvas');
     canvas.width = container.clientWidth || 350;
-    canvas.height = 280;
+    canvas.height = 300;
     canvas.style.width = '100%';
-    canvas.style.height = '280px';
+    canvas.style.height = '300px';
     container.innerHTML = '';
     container.appendChild(canvas);
 
@@ -127,7 +128,7 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
     var ctx = canvas.getContext('2d');
     if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
 
-    var padding = { top: 20, right: 20, bottom: 70, left: 50 };
+    var padding = { top: 20, right: 20, bottom: 50, left: 50 };
     var chartW = canvas.width - padding.left - padding.right;
     var chartH = canvas.height - padding.top - padding.bottom;
 
@@ -135,6 +136,9 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
     maxVal = Math.ceil(maxVal * 1.2 / 5) * 5 || 10;
     var barWidth = Math.min(60, chartW / data.length * 0.7);
     var gap = (chartW - barWidth * data.length) / (data.length + 1);
+
+    // Auto-fit label font: smaller for more bars, but at least 9px
+    var labelFontSize = Math.max(9, Math.min(11, barWidth * 0.85 / (data[0] ? (data[0][labelKey] || '').length : 1)));
 
     // Grid lines
     ctx.strokeStyle = '#e5e7eb';
@@ -155,38 +159,33 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
     data.forEach(function(d, i) {
         var x = padding.left + gap + i * (barWidth + gap);
         var barH = (d[valueKey] / maxVal) * chartH;
-        var y = padding.top + chartH - barH;
+        var barY = padding.top + chartH - barH;
 
         var defaultColors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
                              '#f59e0b', '#f97316', '#ef4444', '#8b5cf6', '#10b981'];
         var color = colorMap[d[labelKey]] || defaultColors[i % defaultColors.length];
 
         ctx.fillStyle = color;
-        ctx.fillRect(x, y, barWidth, barH);
+        ctx.fillRect(x, barY, barWidth, barH);
 
         // Value on top
         ctx.fillStyle = '#1f2937';
-        ctx.font = '11px sans-serif';
+        ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(d[valueKey], x + barWidth / 2, y - 6);
+        ctx.fillText(d[valueKey], x + barWidth / 2, barY - 6);
 
-        // Label below — 倾斜45度完整显示班级名/竞赛级别
-        ctx.save();
+        // Label below — 水平居中，缩小字号，完整显示
         ctx.fillStyle = '#4b5563';
-        ctx.font = '11px sans-serif';
-        ctx.textAlign = 'right';
+        ctx.font = labelFontSize + 'px sans-serif';
+        ctx.textAlign = 'center';
         var labelText = d[labelKey] || '';
-        var labelX = x + barWidth / 2;
-        var labelY = padding.top + chartH + 14;
-        ctx.translate(labelX, labelY);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillText(labelText, 0, 0);
-        ctx.restore();
+        ctx.fillText(labelText, x + barWidth / 2, padding.top + chartH + 18);
     });
 }
 
 /**
  * Horizontal bar chart for competition names
+ * Left padding auto-calculated to fit the longest name
  */
 function drawHorizontalBarChart(containerId, labels, values) {
     var container = document.getElementById(containerId);
@@ -212,7 +211,17 @@ function drawHorizontalBarChart(containerId, labels, values) {
     var ctx = canvas.getContext('2d');
     if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
 
-    var padding = { top: 10, right: 40, bottom: 10, left: 160 };
+    // Calculate left padding from longest label (Chinese char ≈ 12px at 11px font)
+    var labelFontSize = 11;
+    var maxLabelWidth = 0;
+    ctx.font = labelFontSize + 'px sans-serif';
+    labels.forEach(function(l) {
+        var w = ctx.measureText(l).width;
+        if (w > maxLabelWidth) maxLabelWidth = w;
+    });
+    var leftPadding = Math.max(100, Math.min(200, maxLabelWidth + 20));
+
+    var padding = { top: 10, right: 40, bottom: 10, left: leftPadding };
     var chartW = canvas.width - padding.left - padding.right;
     var barH = Math.min(24, (canvas.height - padding.top - padding.bottom) / labels.length - 4);
     var gap = 4;
@@ -224,11 +233,11 @@ function drawHorizontalBarChart(containerId, labels, values) {
         var y = padding.top + i * (barH + gap);
         var w = (values[i] / maxVal) * chartW;
 
-        // Label
+        // Label — right-aligned, fits within leftPadding
         ctx.fillStyle = '#374151';
-        ctx.font = '11px sans-serif';
+        ctx.font = labelFontSize + 'px sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText(label, padding.left - 8, y + barH / 2 + 3);
+        ctx.fillText(label, padding.left - 10, y + barH / 2 + 3);
 
         // Bar
         var colors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
