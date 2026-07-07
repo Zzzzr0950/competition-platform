@@ -140,6 +140,8 @@ def approve_submission(sid):
     """, [sid], one=True)
     if not sub:
         return jsonify({'error': '申报记录不存在'}), 404
+    if sub['status'] != 'pending':
+        return jsonify({'error': '该申报已被其他人审核过了，请刷新列表'}), 409
 
     old_status = sub['status']
 
@@ -182,6 +184,8 @@ def reject_submission(sid):
     sub = query_db("SELECT * FROM submissions WHERE id = ?", [sid], one=True)
     if not sub:
         return jsonify({'error': '申报记录不存在'}), 404
+    if sub['status'] != 'pending':
+        return jsonify({'error': '该申报已被其他人审核过了，请刷新列表'}), 409
 
     old_status = sub['status']
 
