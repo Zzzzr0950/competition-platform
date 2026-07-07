@@ -284,12 +284,13 @@ function drawHorizontalBarChart(containerId, labels, values) {
 
     ctx = canvas.getContext('2d');
 
-    // All bars same width — fill the remaining space
-    var barW = canvasW - pad.left - pad.right;
     var barH = 20;
+    var chartW = canvasW - pad.left - pad.right;
+    var maxVal = Math.max.apply(null, values) || 1;
 
-    var colors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
-                  '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
+    // Dark-to-light blue gradient based on count
+    var darkR = 26,  darkG = 86,  darkB = 219;  // #1a56db
+    var lightR = 96, lightG = 165, lightB = 250; // #60a5fa
 
     var y = pad.top;
     wrappedLabels.forEach(function(w, i) {
@@ -309,15 +310,21 @@ function drawHorizontalBarChart(containerId, labels, values) {
             ctx.fillText(w.lines[1], pad.left - 10, y + rowH * 0.75 + 3);
         }
 
-        // Bar — uniform width
-        ctx.fillStyle = colors[i % colors.length];
+        // Bar width proportional to count, color depth proportional to count
+        var ratio = values[i] / maxVal;
+        var barW = Math.max(20, ratio * chartW * 0.9);  // up to 90% of chart width
+
+        var r = Math.round(lightR + (darkR - lightR) * ratio);
+        var g = Math.round(lightG + (darkG - lightG) * ratio);
+        var b = Math.round(lightB + (darkB - lightB) * ratio);
+        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
         ctx.fillRect(pad.left, barY, barW, barH);
 
-        // Value — right-aligned inside bar
-        ctx.fillStyle = '#ffffff';
+        // Value — right of bar
+        ctx.fillStyle = '#1f2937';
         ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(values[i], pad.left + barW - 8, barY + barH / 2 + 4);
+        ctx.textAlign = 'left';
+        ctx.fillText(values[i], pad.left + barW + 8, barY + barH / 2 + 4);
 
         y += rowH + gap;
     });
