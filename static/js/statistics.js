@@ -76,10 +76,8 @@ function loadByLevel() {
 function loadByCompetition() {
     fetchJSON('/api/admin/statistics/by-competition?limit=10')
         .then(function(data) {
-            var labels = data.map(function(d) {
-                var label = d.name.length > 18 ? d.name.slice(0, 17) + '…' : d.name;
-                return label;
-            });
+            // 传完整竞赛名称，由绘图函数自行处理换行
+            var labels = data.map(function(d) { return d.name; });
             var values = data.map(function(d) { return d.count; });
             drawHorizontalBarChart('chart-competition', labels, values);
         })
@@ -185,7 +183,7 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
 
 /**
  * Horizontal bar chart for competition names
- * Left padding auto-calculated to fit the longest name
+ * Long names auto-wrap to two lines with smaller font
  */
 function drawHorizontalBarChart(containerId, labels, values) {
     var container = document.getElementById(containerId);
@@ -193,62 +191,112 @@ function drawHorizontalBarChart(containerId, labels, values) {
 
     var canvas = document.createElement('canvas');
     canvas.width = container.clientWidth || 350;
-    canvas.height = Math.max(220, labels.length * 32);
+    var ctx = canvas.getContext('2d');
+    if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
+
+    if (!labels || labels.length === 0) {
+        canvas.height = 220;
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+        canvas.style.width = '100%';
+        canvas.style.height = '220px';
+        container.innerHTML = '';
+        container.appendChild(canvas);
+        return;
+    }
+
+    // Fixed left area width for labels
+    var labelAreaWidth = 130;
+
+    // Determine which labels need wrapping and split them
+    var wrappedLabels = labels.map(function(label) {
+        ctx.font = '11px sans-serif';
+        var fullWidth = ctx.measureText(label).width;
+        if (fullWidth <= labelAreaWidth - 10) {
+            return { lines: [label], singleLine: true };
+        }
+        // Need two lines — split Chinese text roughly in half
+        // Also try splitting at a natural boundary like · or （
+        var half = Math.ceil(label.length / 2);
+        // Look for natural break points near the middle
+        var breakChars = ['·', '（', '(', '）', ')', '、', '—', '-', ' '];
+        var best = half;
+        for (var j = Math.max(0, half - 4); j < Math.min(label.length, half + 4); j++) {
+            if (breakChars.indexOf(label[j]) !== -1) { best = j + 1; break; }
+        }
+        // If no natural break found, just split at half (character boundary)
+        if (best === half) {
+            best = Math.ceil(label.length / 2);
+        }
+        var line1 = label.slice(0, best);
+        var line2 = label.slice(best);
+        return { lines: [line1, line2], singleLine: false };
+    });
+
+    // Calculate row heights
+    var singleRowH = 28;
+    var doubleRowH = 38;
+    var gap = 4;
+    var totalHeight = 0;
+    var rowHeights = wrappedLabels.map(function(w) {
+        var h = w.singleLine ? singleRowH : doubleRowH;
+        totalHeight += h + gap;
+        return h;
+    });
+    totalHeight -= gap; // remove last gap
+
+    var padding = { top: 10, right: 40, bottom: 10, left: labelAreaWidth };
+    canvas.height = Math.max(220, padding.top + totalHeight + padding.bottom);
     canvas.style.width = '100%';
     canvas.style.height = canvas.height + 'px';
     container.innerHTML = '';
     container.appendChild(canvas);
 
-    if (!labels || labels.length === 0) {
-        var ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = '14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
-        return;
-    }
-
-    var ctx = canvas.getContext('2d');
-    if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
-
-    // Calculate left padding from longest label (Chinese char ≈ 12px at 11px font)
-    var labelFontSize = 11;
-    var maxLabelWidth = 0;
-    ctx.font = labelFontSize + 'px sans-serif';
-    labels.forEach(function(l) {
-        var w = ctx.measureText(l).width;
-        if (w > maxLabelWidth) maxLabelWidth = w;
-    });
-    var leftPadding = Math.max(100, Math.min(200, maxLabelWidth + 20));
-
-    var padding = { top: 10, right: 40, bottom: 10, left: leftPadding };
+    // Re-create context after canvas resize
+    ctx = canvas.getContext('2d');
     var chartW = canvas.width - padding.left - padding.right;
-    var barH = Math.min(24, (canvas.height - padding.top - padding.bottom) / labels.length - 4);
-    var gap = 4;
 
     var maxVal = Math.max.apply(null, values);
-    maxVal = Math.ceil(maxVal * 1.15);
+    maxVal = Math.ceil(maxVal * 1.15) || 1;
 
-    labels.forEach(function(label, i) {
-        var y = padding.top + i * (barH + gap);
-        var w = (values[i] / maxVal) * chartW;
+    // Get bar colors (more colors for differentiation)
+    var barColors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
+                     '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
 
-        // Label — right-aligned, fits within leftPadding
-        ctx.fillStyle = '#374151';
-        ctx.font = labelFontSize + 'px sans-serif';
+    var currentY = padding.top;
+    wrappedLabels.forEach(function(w, i) {
+        var rowH = rowHeights[i];
+        var barH = Math.min(w.singleLine ? 22 : 28, rowH - 6);
+        var wVal = (values[i] / maxVal) * chartW;
+
+        // Center the bar vertically in this row
+        var barY = currentY + (rowH - barH) / 2;
+
+        // Draw label (one or two lines)
         ctx.textAlign = 'right';
-        ctx.fillText(label, padding.left - 10, y + barH / 2 + 3);
+        if (w.singleLine) {
+            ctx.fillStyle = '#374151';
+            ctx.font = '11px sans-serif';
+            ctx.fillText(w.lines[0], padding.left - 10, currentY + rowH / 2 + 4);
+        } else {
+            ctx.fillStyle = '#374151';
+            ctx.font = '9px sans-serif';
+            ctx.fillText(w.lines[0], padding.left - 10, currentY + rowH * 0.35 + 3);
+            ctx.fillText(w.lines[1], padding.left - 10, currentY + rowH * 0.75 + 3);
+        }
 
         // Bar
-        var colors = ['#1a56db', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd',
-                      '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.fillRect(padding.left, y, w, barH);
+        ctx.fillStyle = barColors[i % barColors.length];
+        ctx.fillRect(padding.left, barY, wVal, barH);
 
         // Value
         ctx.fillStyle = '#1f2937';
         ctx.font = 'bold 11px sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(values[i], padding.left + w + 6, y + barH / 2 + 3);
+        ctx.fillText(values[i], padding.left + wVal + 6, barY + barH / 2 + 4);
+
+        currentY += rowH + gap;
     });
 }
