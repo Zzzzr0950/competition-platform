@@ -43,7 +43,11 @@
                     <span style="margin:0 4px;">·</span>
                     {{ sub.award_level }}
                     <span style="margin:0 4px;">·</span>
-                    {{ sub.created_at[:10] }}
+                    提交 {{ sub.created_at[:10] }}
+                    {% if sub.reviewed_at %}
+                    <span style="margin:0 4px;">·</span>
+                    审核 {{ sub.reviewed_at[:10] }}
+                    {% endif %}
                 </div>
                 <div style="margin-top:4px;">
                     <span class="badge badge-{{ sub.status }}">
