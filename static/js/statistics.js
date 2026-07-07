@@ -218,8 +218,14 @@ function drawHorizontalBarChart(containerId, labels, values) {
     var container = document.getElementById(containerId);
     if (!container) return;
 
+    // Use wider canvas so labels and bars have room; container scrolls if needed
+    container.style.overflowX = 'auto';
+    var minWidth = 500;
+    var canvasWidth = Math.max(container.clientWidth || 350, minWidth);
+
     var canvas = document.createElement('canvas');
-    canvas.width = container.clientWidth || 350;
+    canvas.width = canvasWidth;
+    canvas.style.display = 'block';
     var ctx = canvas.getContext('2d');
     if (!ctx) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;">浏览器不支持 Canvas</div>'; return; }
 
@@ -236,8 +242,8 @@ function drawHorizontalBarChart(containerId, labels, values) {
         return;
     }
 
-    // Fixed left area width for labels
-    var labelAreaWidth = 130;
+    // Left area width for labels — enough for ~13 Chinese chars
+    var labelAreaWidth = 140;
 
     // Determine which labels need wrapping and split them
     var wrappedLabels = labels.map(function(label) {
@@ -278,7 +284,6 @@ function drawHorizontalBarChart(containerId, labels, values) {
 
     var padding = { top: 10, right: 40, bottom: 10, left: labelAreaWidth };
     canvas.height = Math.max(220, padding.top + totalHeight + padding.bottom);
-    canvas.style.width = '100%';
     canvas.style.height = canvas.height + 'px';
     container.innerHTML = '';
     container.appendChild(canvas);
