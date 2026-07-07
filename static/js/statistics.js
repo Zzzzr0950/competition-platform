@@ -102,11 +102,22 @@ function loadByLevel() {
         });
 }
 
+/** 清理竞赛名称：去掉 ①②③... 及其后面的子项目 */
+function cleanCompetitionName(name) {
+    // 找到第一个圈圈数字的位置
+    var circled = name.search(/[①-⑳]/);  // ①-⑳
+    if (circled === -1) return name;
+    // 往前找分隔符，从分隔符开始裁掉
+    var before = name.slice(0, circled);
+    var sep = before.search(/[—\-：:，,、\s]+$/);
+    if (sep !== -1) return before.slice(0, sep);
+    return before;
+}
+
 function loadByCompetition() {
     fetchJSON('/api/admin/statistics/by-competition?limit=10')
         .then(function(data) {
-            // 传完整竞赛名称，由绘图函数自行处理换行
-            var labels = data.map(function(d) { return d.name; });
+            var labels = data.map(function(d) { return cleanCompetitionName(d.name); });
             var values = data.map(function(d) { return d.count; });
             drawHorizontalBarChart('chart-competition', labels, values);
         })
