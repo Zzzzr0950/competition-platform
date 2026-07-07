@@ -15,6 +15,9 @@
         <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>已通过</option>
         <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>已驳回</option>
     </select>
+    <select class="form-select" id="class-filter" onchange="applyFilters()">
+        <option value="">全部班级</option>
+    </select>
     <select class="form-select" id="catalog-filter" onchange="applyFilters()">
         <option value="">全部竞赛</option>
         {% for c in catalog %}
@@ -87,12 +90,31 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/review.js') }}"></script>
 <script>
+// Populate class dropdown
+(function() {
+    fetch('/api/admin/statistics/by-class', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var sel = document.getElementById('class-filter');
+            var current = '{{ class_filter }}';
+            data.forEach(function(d) {
+                var opt = document.createElement('option');
+                opt.value = d.class_name;
+                opt.textContent = d.class_name + ' (' + d.count + '条)';
+                if (d.class_name === current) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        });
+})();
+
 function applyFilters() {
     var status = document.getElementById('status-filter').value;
+    var className = document.getElementById('class-filter').value;
     var catalog = document.getElementById('catalog-filter').value;
     var search = document.getElementById('search-input').value;
     var params = [];
     if (status) params.push('status=' + status);
+    if (className) params.push('class_name=' + encodeURIComponent(className));
     if (catalog) params.push('catalog_id=' + catalog);
     if (search) params.push('search=' + encodeURIComponent(search));
     window.location.href = '{{ url_for("admin.review_list") }}' + (params.length ? '?' + params.join('&') : '');
