@@ -7,7 +7,36 @@ document.addEventListener('DOMContentLoaded', function() {
     loadByLevel();
     loadByCompetition();
     loadByClass();
+    loadClassOptions();
 });
+
+/** 填充导出班级下拉框 */
+function loadClassOptions() {
+    var select = document.getElementById('export-class');
+    if (!select) return;
+    fetchJSON('/api/admin/statistics/by-class')
+        .then(function(data) {
+            data.forEach(function(d) {
+                var opt = document.createElement('option');
+                opt.value = d.class_name;
+                opt.textContent = d.class_name + ' (' + d.count + '条)';
+                select.appendChild(opt);
+            });
+        })
+        .catch(function(err) {
+            console.error('加载班级列表失败:', err.message);
+        });
+}
+
+/** 执行导出 */
+function doExport() {
+    var className = document.getElementById('export-class').value;
+    var url = '/api/admin/export';
+    if (className) {
+        url += '?class_name=' + encodeURIComponent(className);
+    }
+    window.location.href = url;
+}
 
 /**
  * 通用 fetch 封装：处理 302 重定向、非 JSON 响应等异常情况

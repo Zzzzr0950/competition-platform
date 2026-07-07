@@ -310,46 +310,59 @@ def statistics_by_class():
 @admin_bp.route('/api/admin/export')
 @admin_required
 def export_csv():
-    """Export submissions as CSV file."""
-    rows = query_db("""
+    """Export submissions as CSV file, optionally filtered by class."""
+    class_name = request.args.get('class_name', '').strip()
+
+    sql = """
         SELECT u.student_id, u.name as student_name, u.class_name,
                c.name as competition_name, c.level as competition_level,
                s.award_level, s.award_date, s.team_name, s.team_members,
-               s.status, s.review_comment, s.created_at, s.reviewed_at
+               s.status, s.review_comment, s.created_at, s.reviewed_at,
+               COALESCE((SELECT SUM(s2.credits) FROM submissions s2
+                          WHERE s2.user_id = u.id AND s2.status = 'approved'), 0) as total_credits
         FROM submissions s
         JOIN users u ON s.user_id = u.id
         JOIN competition_catalog c ON s.catalog_id = c.id
-        ORDER BY s.created_at DESC
-    """)
+    """
+    params = []
+
+    if class_name:
+        sql += " WHERE u.class_name = ?"
+        params.append(class_name)
+
+    sql += " ORDER BY u.student_id ASC"
+
+    rows = query_db(sql, params)
 
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
         '学号', '姓名', '班级', '竞赛名称', '竞赛级别',
         '获奖等级', '获奖日期', '团队名称', '团队成员',
-        '审核状态', '审核意见', '提交时间', '审核时间'
+        '审核状态', '审核意见', '提交时间', '审核时间', '总学分'
     ])
 
     for r in rows:
-        # Format dates: keep full datetime for accuracy, Excel will need column widened
         created = r['created_at'] or ''
         reviewed = r['reviewed_at'] or ''
         writer.writerow([
-            '\t' + (r['student_id'] or ''),  # \t prefix forces Excel to treat as text
+            '\t' + (r['student_id'] or ''),
             r['student_name'], r['class_name'],
             r['competition_name'], r['competition_level'],
             r['award_level'], r['award_date'], r['team_name'], r['team_members'],
             {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
             r['review_comment'],
-            created.replace(' ', 'T'),   # ISO format easier for Excel parsing
-            reviewed.replace(' ', 'T') if reviewed else ''
+            created.replace(' ', 'T'),
+            reviewed.replace(' ', 'T') if reviewed else '',
+            r['total_credits']
         ])
 
+    filename = f'competition_export{("_" + class_name) if class_name else ""}.csv'
     output.seek(0)
     return Response(
         output.getvalue().encode('utf-8-sig'),
         mimetype='text/csv',
-        headers={'Content-Disposition': 'attachment;filename=competition_awards_export.csv'}
+        headers={'Content-Disposition': f'attachment;filename={filename}'}
     )
 
 
