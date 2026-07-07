@@ -252,12 +252,6 @@ def statistics_overview():
         'approved': query_db("SELECT COUNT(*) as c FROM submissions WHERE status = 'approved'", one=True)['c'],
         'rejected': query_db("SELECT COUNT(*) as c FROM submissions WHERE status = 'rejected'", one=True)['c'],
     }
-    # Key competitions
-    stats['key_competition_total'] = query_db("""
-        SELECT COUNT(*) as c FROM submissions s
-        JOIN competition_catalog c ON s.catalog_id = c.id
-        WHERE c.is_key_competition = 1
-    """, one=True)['c']
     stats['student_count'] = query_db(
         "SELECT COUNT(DISTINCT user_id) as c FROM submissions", one=True
     )['c']
@@ -285,7 +279,7 @@ def statistics_by_competition():
     """Top competitions by submission count."""
     limit = request.args.get('limit', 10, type=int)
     rows = query_db("""
-        SELECT c.name, c.level, c.is_key_competition, COUNT(*) as count
+        SELECT c.name, c.level, COUNT(*) as count
         FROM submissions s
         JOIN competition_catalog c ON s.catalog_id = c.id
         GROUP BY s.catalog_id
@@ -295,7 +289,6 @@ def statistics_by_competition():
     return jsonify([{
         'name': r['name'],
         'level': r['level'],
-        'is_key_competition': r['is_key_competition'],
         'count': r['count']
     } for r in rows])
 
@@ -321,7 +314,6 @@ def export_csv():
     rows = query_db("""
         SELECT u.student_id, u.name as student_name, u.class_name,
                c.name as competition_name, c.level as competition_level,
-               c.is_key_competition,
                s.award_level, s.award_date, s.team_name, s.team_members,
                s.status, s.review_comment, s.created_at, s.reviewed_at
         FROM submissions s
@@ -333,7 +325,7 @@ def export_csv():
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        '学号', '姓名', '班级', '竞赛名称', '竞赛级别', '是否重点赛事',
+        '学号', '姓名', '班级', '竞赛名称', '竞赛级别',
         '获奖等级', '获奖日期', '团队名称', '团队成员',
         '审核状态', '审核意见', '提交时间', '审核时间'
     ])
@@ -346,7 +338,6 @@ def export_csv():
             '\t' + (r['student_id'] or ''),  # \t prefix forces Excel to treat as text
             r['student_name'], r['class_name'],
             r['competition_name'], r['competition_level'],
-            '是' if r['is_key_competition'] else '否',
             r['award_level'], r['award_date'], r['team_name'], r['team_members'],
             {'pending': '待审核', 'approved': '已通过', 'rejected': '已驳回'}.get(r['status'], r['status']),
             r['review_comment'],
@@ -384,15 +375,14 @@ def add_catalog():
     category = data.get('category', '学科竞赛').strip()
     level = data.get('level', '校级').strip()
     organizer = data.get('organizer', '').strip()
-    is_key = data.get('is_key_competition', 0)
 
     if not name:
         return jsonify({'error': '竞赛名称不能为空'}), 400
 
     cid = execute_db(
-        """INSERT INTO competition_catalog (name, short_name, category, level, organizer, is_key_competition)
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        [name, short_name, category, level, organizer, is_key]
+        """INSERT INTO competition_catalog (name, short_name, category, level, organizer)
+           VALUES (?, ?, ?, ?, ?)""",
+        [name, short_name, category, level, organizer]
     )
     return jsonify({'success': True, 'id': cid, 'message': '已添加'})
 
@@ -404,10 +394,10 @@ def update_catalog(cid):
     data = request.get_json() or {}
     execute_db(
         """UPDATE competition_catalog SET name=?, short_name=?, category=?, level=?,
-           organizer=?, is_key_competition=?, sort_order=? WHERE id=?""",
+           organizer=?, sort_order=? WHERE id=?""",
         [data.get('name', ''), data.get('short_name', ''),
          data.get('category', ''), data.get('level', ''),
-         data.get('organizer', ''), data.get('is_key_competition', 0),
+         data.get('organizer', ''),
          data.get('sort_order', 0), cid]
     )
     return jsonify({'success': True, 'message': '已更新'})

@@ -38,9 +38,6 @@
             <span class="badge badge-{{ 'national' if sub.competition_level == '国家级' else 'provincial' if sub.competition_level == '省级' else 'school' }}">
                 {{ sub.competition_level }}
             </span>
-            {% if sub.is_key_competition %}
-            <span class="badge badge-key">重点赛事</span>
-            {% endif %}
         </span>
     </div>
     <div class="detail-row">

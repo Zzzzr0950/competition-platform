@@ -40,10 +40,8 @@
                          data-id="{{ c.id }}"
                          data-name="{{ c.name }}"
                          data-level="{{ c.level }}"
-                         data-key="{{ c.is_key_competition }}"
                          onclick="selectCompetition(this)">
                         <span class="accordion-item-name">{{ c.name }}</span>
-                        {% if c.is_key_competition %}<span class="badge badge-key">重点</span>{% endif %}
                     </div>
                     {% endfor %}
                 </div>
