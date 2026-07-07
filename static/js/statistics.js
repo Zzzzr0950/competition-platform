@@ -34,7 +34,8 @@ function loadByCompetition() {
         .then(function(r) { return r.json(); })
         .then(function(data) {
             var labels = data.map(function(d) {
-                var label = d.name.length > 10 ? d.name.slice(0, 10) + '...' : d.name;
+                // 显示完整竞赛名称（最多18个汉字，超出才截断）
+                var label = d.name.length > 18 ? d.name.slice(0, 17) + '…' : d.name;
                 return label;
             });
             var values = data.map(function(d) { return d.count; });
@@ -60,9 +61,9 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
 
     var canvas = document.createElement('canvas');
     canvas.width = container.clientWidth || 350;
-    canvas.height = 220;
+    canvas.height = 280;
     canvas.style.width = '100%';
-    canvas.style.height = '220px';
+    canvas.style.height = '280px';
     container.innerHTML = '';
     container.appendChild(canvas);
 
@@ -76,7 +77,7 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
     }
 
     var ctx = canvas.getContext('2d');
-    var padding = { top: 20, right: 20, bottom: 40, left: 50 };
+    var padding = { top: 20, right: 20, bottom: 70, left: 50 };
     var chartW = canvas.width - padding.left - padding.right;
     var chartH = canvas.height - padding.top - padding.bottom;
 
@@ -119,12 +120,19 @@ function drawBarChart(containerId, data, labelKey, valueKey, colorMap) {
         ctx.textAlign = 'center';
         ctx.fillText(d[valueKey], x + barWidth / 2, y - 6);
 
-        // Label below
+        // Label below — 倾斜45度完整显示班级名/竞赛级别
+        ctx.save();
         ctx.fillStyle = '#4b5563';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        var label = (d[labelKey] || '') .length > 6 ? (d[labelKey] || '').slice(0, 5) + '..' : (d[labelKey] || '');
-        ctx.fillText(label, x + barWidth / 2, padding.top + chartH + 16);
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        var labelText = d[labelKey] || '';
+        // 不截断，倾斜显示完整文本
+        var labelX = x + barWidth / 2;
+        var labelY = padding.top + chartH + 14;
+        ctx.translate(labelX, labelY);
+        ctx.rotate(Math.PI / 4);  // 45度倾斜
+        ctx.fillText(labelText, 0, 0);
+        ctx.restore();
     });
 }
 
@@ -153,7 +161,7 @@ function drawHorizontalBarChart(containerId, labels, values) {
     }
 
     var ctx = canvas.getContext('2d');
-    var padding = { top: 10, right: 40, bottom: 10, left: 110 };
+    var padding = { top: 10, right: 40, bottom: 10, left: 160 };
     var chartW = canvas.width - padding.left - padding.right;
     var barH = Math.min(24, (canvas.height - padding.top - padding.bottom) / labels.length - 4);
     var gap = 4;
@@ -165,7 +173,7 @@ function drawHorizontalBarChart(containerId, labels, values) {
         var y = padding.top + i * (barH + gap);
         var w = (values[i] / maxVal) * chartW;
 
-        // Label
+        // Label — 右对齐，完整显示
         ctx.fillStyle = '#374151';
         ctx.font = '11px sans-serif';
         ctx.textAlign = 'right';
