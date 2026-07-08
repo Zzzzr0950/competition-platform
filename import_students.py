@@ -79,6 +79,9 @@ def import_students(file_path, default_password=None):
     # ── 写入数据库 ──
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    cursor.execute("PRAGMA synchronous=OFF")
+    cursor.execute("PRAGMA journal_mode=MEMORY")
+    cursor.execute("BEGIN")
 
     created = 0
     skipped = 0
@@ -132,6 +135,12 @@ def import_students(file_path, default_password=None):
         except Exception as e:
             print(f'  [跳过] 第{i}行 {student_id} {name}: {e}')
             skipped += 1
+
+        # 每500条提交一次，避免事务过大
+        if created % 500 == 0 and created > 0:
+            conn.commit()
+            cursor.execute("BEGIN")
+            print(f'  已导入 {created} 人...')
 
     conn.commit()
     conn.close()
