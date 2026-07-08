@@ -321,6 +321,7 @@ def export_csv():
     """
     class_name = request.args.get('class_name', '').strip()
 
+    # LEFT JOIN so students with 0 submissions still appear
     sql = """
         SELECT u.id as uid, u.student_id, u.name as student_name, u.class_name,
                c.name as competition_name, c.level as competition_level,
@@ -329,14 +330,15 @@ def export_csv():
                s.credits,
                COALESCE((SELECT SUM(s2.credits) FROM submissions s2
                           WHERE s2.user_id = u.id AND s2.status = 'approved'), 0) as total_credits
-        FROM submissions s
-        JOIN users u ON s.user_id = u.id
-        JOIN competition_catalog c ON s.catalog_id = c.id
+        FROM users u
+        LEFT JOIN submissions s ON s.user_id = u.id
+        LEFT JOIN competition_catalog c ON s.catalog_id = c.id
+        WHERE u.role = 'student'
     """
     params = []
 
     if class_name:
-        sql += " WHERE u.class_name = ?"
+        sql += " AND u.class_name = ?"
         params.append(class_name)
 
     sql += " ORDER BY u.student_id ASC"

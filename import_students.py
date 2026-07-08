@@ -106,6 +106,11 @@ def import_students(file_path, default_password=None):
             skipped += 1
             continue
 
+        # 跳过 2022 级
+        if class_name and (class_name.startswith('22') or '2022' in class_name):
+            skipped += 1
+            continue
+
         # 检查已存在
         existing = cursor.execute(
             "SELECT id FROM users WHERE student_id = ?", [student_id]
