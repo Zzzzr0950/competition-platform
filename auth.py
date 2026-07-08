@@ -34,6 +34,11 @@ def login():
         session['name'] = user['name']
         session['role'] = user['role']
 
+        # 批量导入的账号首次登录必须修改密码
+        if user['must_change_password']:
+            flash('请先修改初始密码后再使用系统', 'warning')
+            return redirect(url_for('auth.change_password'))
+
         flash(f'欢迎回来，{user["name"]}！', 'success')
 
         if user['role'] == 'admin':
@@ -45,7 +50,12 @@ def login():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Registration page."""
+    """Registration page (disabled by default, use batch import)."""
+    from config import ALLOW_REGISTRATION
+    if not ALLOW_REGISTRATION:
+        flash('暂未开放公开注册，请联系管理员', 'warning')
+        return redirect(url_for('auth.login'))
+
     if request.method == 'POST':
         student_id = request.form.get('student_id', '').strip()
         name = request.form.get('name', '').strip()
@@ -128,10 +138,14 @@ def change_password():
             flash('两次输入的新密码不一致', 'warning')
         else:
             execute_db(
-                "UPDATE users SET password_hash = ? WHERE id = ?",
+                "UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?",
                 [hash_password(new_pw), session['user_id']]
             )
             flash('密码修改成功', 'success')
+
+            user_role = query_db("SELECT role FROM users WHERE id = ?", [session['user_id']], one=True)
+            if user_role and user_role['role'] == 'admin':
+                return redirect(url_for('admin.dashboard'))
             return redirect(url_for('student.dashboard'))
 
     return render_template('change_password.html')

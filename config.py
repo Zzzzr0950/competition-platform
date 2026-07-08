@@ -52,5 +52,8 @@ else:
         f.write(JWT_SECRET_KEY)
 JWT_EXPIRATION_HOURS = 72  # Token valid for 3 days
 
+# 公开注册开关：False 则只能由管理员批量导入
+ALLOW_REGISTRATION = os.environ.get('ALLOW_REGISTRATION', '0') == '1'
+
 # Server base URL for constructing absolute URLs (image serving, etc.)
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')

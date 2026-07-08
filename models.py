@@ -60,6 +60,12 @@ def init_db():
     except:
         pass
 
+    # Add must_change_password for batch-imported students
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0")
+    except:
+        pass
+
     # Competition catalog table (2026 discipline competition catalog)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS competition_catalog (
