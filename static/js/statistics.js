@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadClassOptions() {
     var select = document.getElementById('export-class');
     if (!select) return;
-    fetchJSON('/api/admin/statistics/by-class')
+    fetchJSON('/api/admin/classes')
         .then(function(data) {
             data.forEach(function(d) {
                 var opt = document.createElement('option');
                 opt.value = d.class_name;
-                opt.textContent = d.class_name + ' (' + d.count + '条)';
+                opt.textContent = d.class_name + ' (' + d.total + '人)';
                 select.appendChild(opt);
             });
         })

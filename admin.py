@@ -299,6 +299,18 @@ def statistics_by_competition():
     } for r in rows])
 
 
+@admin_bp.route('/api/admin/classes')
+@admin_required
+def all_classes():
+    """All student classes (including those with 0 submissions)."""
+    rows = query_db("""
+        SELECT class_name, COUNT(*) as total
+        FROM users WHERE role = 'student'
+        GROUP BY class_name ORDER BY class_name
+    """)
+    return jsonify([{'class_name': r['class_name'], 'total': r['total']} for r in rows])
+
+
 @admin_bp.route('/api/admin/statistics/by-class')
 @admin_required
 def statistics_by_class():
