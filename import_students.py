@@ -84,11 +84,23 @@ def import_students(file_path, default_password=None):
     skipped = 0
     class_stats = {}  # 班级 -> 人数
 
+    # 专业推断规则：班级号第6位 → 专业
+    def guess_major(class_name):
+        if len(class_name) >= 6:
+            digit = class_name[5]  # 第6位（0开始）
+            if digit == '1': return '计算机科学与技术'
+            if digit == '2': return '物联网工程'
+            if digit == '3': return '数据科学与大数据技术'
+        return ''
+
     for i, row in enumerate(rows, start=2):
         student_id = row[idx_id] if idx_id < len(row) else ''
         name = row[idx_name] if idx_name < len(row) else ''
         class_name = row[idx_class] if idx_class is not None and idx_class < len(row) else ''
         major = row[idx_major] if idx_major is not None and idx_major < len(row) else ''
+        # 如果表中没有专业列或专业为空，根据班级号自动推断
+        if not major:
+            major = guess_major(class_name)
 
         if not student_id or not name:
             skipped += 1
