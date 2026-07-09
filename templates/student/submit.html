@@ -72,7 +72,11 @@
 
         <div class="form-group" id="group-award_date">
             <label class="form-label" for="award_date"><span class="required">*</span> 获奖日期</label>
-            <input type="date" class="form-input" id="award_date" name="award_date" required>
+            <div style="position:relative;">
+                <input type="text" class="form-input" id="award_date" name="award_date" readonly placeholder="点击选择日期" required
+                       onclick="openDatePicker()" style="cursor:pointer;padding-right:44px;">
+                <span onclick="openDatePicker()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.3rem;cursor:pointer;pointer-events:none;">📅</span>
+            </div>
             <div class="form-error">请选择获奖日期</div>
         </div>
     </div>
@@ -121,8 +125,83 @@
     <p class="text-xs text-center mt-2 text-muted">提交后将由管理员审核，请确保信息真实准确</p>
 </form>
 
+<!-- 自定义日历弹窗 -->
+<div id="datepicker-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:5000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)closeDatePicker()">
+    <div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <button type="button" onclick="changeMonth(-1)" style="border:none;background:none;font-size:1.5rem;cursor:pointer;padding:8px 12px;">◀</button>
+            <span id="dp-title" style="font-size:1.2rem;font-weight:700;"></span>
+            <button type="button" onclick="changeMonth(1)" style="border:none;background:none;font-size:1.5rem;cursor:pointer;padding:8px 12px;">▶</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:4px;" id="dp-grid"></div>
+        <button type="button" onclick="closeDatePicker()" style="width:100%;margin-top:16px;padding:14px;border:1px solid #e5e7eb;border-radius:10px;background:#f3f4f6;font-size:1rem;cursor:pointer;">取消</button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/submit.js') }}"></script>
+<script>
+var dpYear, dpMonth;
+
+function openDatePicker() {
+    var input = document.getElementById('award_date');
+    var val = input.value;
+    if (val && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        dpYear = parseInt(val.slice(0,4));
+        dpMonth = parseInt(val.slice(5,7)) - 1;
+    } else {
+        var now = new Date();
+        dpYear = now.getFullYear();
+        dpMonth = now.getMonth();
+    }
+    document.getElementById('datepicker-overlay').style.display = 'flex';
+    renderCalendar();
+}
+
+function closeDatePicker() {
+    document.getElementById('datepicker-overlay').style.display = 'none';
+}
+
+function changeMonth(delta) {
+    dpMonth += delta;
+    if (dpMonth > 11) { dpMonth = 0; dpYear++; }
+    if (dpMonth < 0) { dpMonth = 11; dpYear--; }
+    renderCalendar();
+}
+
+function renderCalendar() {
+    var months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    document.getElementById('dp-title').textContent = dpYear + '年 ' + months[dpMonth];
+
+    var grid = document.getElementById('dp-grid');
+    var html = '';
+    ['日','一','二','三','四','五','六'].forEach(function(d) {
+        html += '<div style=\"font-weight:600;color:#9ca3af;font-size:0.8rem;padding:8px 0;\">' + d + '</div>';
+    });
+
+    var firstDay = new Date(dpYear, dpMonth, 1).getDay();
+    var daysInMonth = new Date(dpYear, dpMonth + 1, 0).getDate();
+    var today = new Date();
+    var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+    for (var i = 0; i < firstDay; i++) {
+        html += '<div></div>';
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+        var dateStr = dpYear + '-' + String(dpMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+        var isToday = dateStr === todayStr ? ' style=\"background:#e8f0fe;border-radius:8px;\"' : '';
+        html += '<div onclick=\"pickDate(\'' + dateStr + '\')\" style=\"cursor:pointer;padding:12px 0;font-size:1.05rem;border-radius:10px;transition:background 0.15s;\" onmouseover=\"this.style.background=\'#f3f4f6\'\" onmouseout=\"this.style.background=\'transparent\'\">' + d + '</div>';
+    }
+
+    grid.innerHTML = html;
+}
+
+function pickDate(dateStr) {
+    document.getElementById('award_date').value = dateStr;
+    closeDatePicker();
+}
+</script>
 {% endblock %}
