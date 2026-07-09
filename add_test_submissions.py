@@ -7,7 +7,7 @@ uid = query_db("SELECT id FROM users WHERE student_id = '2407014310'", one=True)
 # 选两个合适的竞赛 + 现有证书图片
 data = [
     # (catalog_id, 获奖等级, 获奖层次, 获奖日期, 团队名, 团队成员, 是否队长, 证书图片, 状态)
-    (1, '一等奖', '国家级', '2026-06-15', 'NUC_CS', '2407014310 张紫蓉, 2407014311 李四', 1, 'certificates/0d9500d95732.jpg', 'approved'),
+    (1, '一等奖', '国家级', '2026-06-15', 'NUC_CS', '2407014311 李四', 1, 'certificates/0d9500d95732.jpg', 'approved'),
     (2, '一等奖', '省级', '2026-05-20', '创新先锋', '2407014312 王五', 1, 'certificates/10ad949f808d.jpg', 'approved'),
 ]
 

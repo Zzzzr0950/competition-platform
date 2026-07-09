@@ -337,7 +337,7 @@ def export_csv():
     sql = """
         SELECT u.id as uid, u.student_id, u.name as student_name, u.class_name,
                c.name as competition_name, c.level as competition_level,
-               s.award_level, s.award_date, s.team_name, s.team_members,
+               s.award_tier, s.award_level, s.award_date, s.team_name, s.team_members,
                s.status, s.review_comment, s.created_at, s.reviewed_at,
                s.credits,
                COALESCE((SELECT SUM(s2.credits) FROM submissions s2
@@ -376,7 +376,7 @@ def export_csv():
     )
 
     # Header
-    headers = ['学号', '姓名', '竞赛名称', '竞赛级别',
+    headers = ['学号', '姓名', '竞赛名称', '竞赛级别', '获奖层次',
                '获奖等级', '获奖日期', '团队名称', '团队成员',
                '审核状态', '审核意见', '提交时间', '审核时间',
                '学分', '总学分']
@@ -388,7 +388,7 @@ def export_csv():
         cell.border = thin_border
 
     # Column widths
-    widths = [16, 10, 36, 10, 18, 14, 18, 22, 10, 22, 20, 20, 8, 8]
+    widths = [16, 10, 36, 10, 10, 18, 14, 18, 22, 10, 22, 20, 20, 8, 8]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = w
 
@@ -426,6 +426,7 @@ def export_csv():
                 stu['name'],
                 r['competition_name'],
                 r['competition_level'],
+                r['award_tier'] or '',
                 r['award_level'],
                 r['award_date'],
                 r['team_name'],
@@ -442,13 +443,13 @@ def export_csv():
                 cell = ws.cell(row=row_num, column=col_idx, value=val)
                 cell.font = cell_font
                 cell.border = thin_border
-                cell.alignment = left_align if col_idx in (3, 10) else center_align
+                cell.alignment = left_align if col_idx in (3, 11) else center_align
 
             row_num += 1
 
         # Merge cells for 学号/姓名/总学分
         if len(subs) > 1:
-            for merge_col in [1, 2, 14]:
+            for merge_col in [1, 2, 15]:
                 ws.merge_cells(start_row=start_row, start_column=merge_col,
                               end_row=end_row, end_column=merge_col)
 
@@ -541,27 +542,25 @@ def delete_catalog(cid):
 @admin_bp.route('/admin/users')
 @admin_required
 def user_management():
-    """List all student users."""
+    """List all student users with submission counts (single query)."""
     search = request.args.get('search', '').strip()
-    query = "SELECT * FROM users WHERE role = 'student'"
+    query = """
+        SELECT u.*, COALESCE(s.submission_count, 0) as submission_count
+        FROM users u
+        LEFT JOIN (
+            SELECT user_id, COUNT(*) as submission_count
+            FROM submissions GROUP BY user_id
+        ) s ON u.id = s.user_id
+        WHERE u.role = 'student'
+    """
     params = []
 
     if search:
-        query += " AND (name LIKE ? OR student_id LIKE ? OR class_name LIKE ?)"
+        query += " AND (u.name LIKE ? OR u.student_id LIKE ? OR u.class_name LIKE ?)"
         params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
 
-    query += " ORDER BY created_at DESC"
+    query += " ORDER BY u.created_at DESC"
     users = query_db(query, params)
-
-    # Get submission count for each user
-    for u in users:
-        count = query_db(
-            "SELECT COUNT(*) as c FROM submissions WHERE user_id = ?", [u['id']], one=True
-        )
-        u_dict = dict(u)
-        u_dict['submission_count'] = count['c']
-        # Replace the row with dict
-        users[users.index(u)] = u_dict
 
     return render_template('admin/user_management.html', users=users, search=search)
 
