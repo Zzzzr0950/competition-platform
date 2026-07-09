@@ -128,11 +128,15 @@
 <!-- 自定义日历弹窗 -->
 <div id="datepicker-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:5000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)closeDatePicker()">
     <div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <button type="button" onclick="changeMonth(-1)" style="border:none;background:none;font-size:1.5rem;cursor:pointer;padding:8px 12px;">◀</button>
-            <span id="dp-title" style="font-size:1.2rem;font-weight:700;"></span>
-            <button type="button" onclick="changeMonth(1)" style="border:none;background:none;font-size:1.5rem;cursor:pointer;padding:8px 12px;">▶</button>
+        <!-- 年份选择 -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px;">
+            <button type="button" onclick="changeYear(-1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 10px;">◀</button>
+            <span id="dp-year" style="font-size:1.3rem;font-weight:700;min-width:80px;text-align:center;"></span>
+            <button type="button" onclick="changeYear(1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 10px;">▶</button>
         </div>
+        <!-- 月份网格 -->
+        <div id="dp-months" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;"></div>
+        <!-- 日期网格 -->
         <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:4px;" id="dp-grid"></div>
         <button type="button" onclick="closeDatePicker()" style="width:100%;margin-top:16px;padding:14px;border:1px solid #e5e7eb;border-radius:10px;background:#f3f4f6;font-size:1rem;cursor:pointer;">取消</button>
     </div>
@@ -164,17 +168,30 @@ function closeDatePicker() {
     document.getElementById('datepicker-overlay').style.display = 'none';
 }
 
-function changeMonth(delta) {
-    dpMonth += delta;
-    if (dpMonth > 11) { dpMonth = 0; dpYear++; }
-    if (dpMonth < 0) { dpMonth = 11; dpYear--; }
+function changeYear(delta) {
+    dpYear += delta;
+    renderCalendar();
+}
+
+function selectMonth(m) {
+    dpMonth = m;
     renderCalendar();
 }
 
 function renderCalendar() {
     var months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-    document.getElementById('dp-title').textContent = dpYear + '年 ' + months[dpMonth];
+    document.getElementById('dp-year').textContent = dpYear + '年';
 
+    // Month grid
+    var mGrid = document.getElementById('dp-months');
+    var mhtml = '';
+    for (var m = 0; m < 12; m++) {
+        var sel = m === dpMonth ? ' style=\"background:#1a56db;color:#fff;font-weight:600;\"' : ' style=\"cursor:pointer;\" onmouseover=\"this.style.background=\'#f3f4f6\'\" onmouseout=\"this.style.background=\'transparent\'\"';
+        mhtml += '<div onclick=\"selectMonth(' + m + ')\"' + sel + ' class=\"dp-month-btn\" style=\"text-align:center;padding:10px 4px;border-radius:8px;font-size:0.9rem;transition:background 0.15s;\">' + months[m] + '</div>';
+    }
+    mGrid.innerHTML = mhtml;
+
+    // Date grid
     var grid = document.getElementById('dp-grid');
     var html = '';
     ['日','一','二','三','四','五','六'].forEach(function(d) {
