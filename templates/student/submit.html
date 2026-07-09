@@ -72,10 +72,20 @@
 
         <div class="form-group" id="group-award_date">
             <label class="form-label" for="award_date"><span class="required">*</span> 获奖日期</label>
+            <!-- 日历面板（点击日期框展开） -->
+            <div id="datepicker-panel" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+                <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px;">
+                    <button type="button" onclick="changeYear(-1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 12px;">◀</button>
+                    <span id="dp-year" style="font-size:1.2rem;font-weight:700;min-width:80px;text-align:center;"></span>
+                    <button type="button" onclick="changeYear(1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 12px;">▶</button>
+                </div>
+                <div id="dp-months" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;"></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:4px;" id="dp-grid"></div>
+            </div>
             <div style="position:relative;">
                 <input type="text" class="form-input" id="award_date" name="award_date" readonly placeholder="点击选择日期" required
-                       onclick="openDatePicker()" style="cursor:pointer;padding-right:44px;">
-                <span onclick="openDatePicker()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.3rem;cursor:pointer;pointer-events:none;">📅</span>
+                       onclick="toggleDatePicker()" style="cursor:pointer;padding-right:44px;">
+                <span onclick="toggleDatePicker()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.3rem;cursor:pointer;">📅</span>
             </div>
             <div class="form-error">请选择获奖日期</div>
         </div>
@@ -125,47 +135,30 @@
     <p class="text-xs text-center mt-2 text-muted">提交后将由管理员审核，请确保信息真实准确</p>
 </form>
 
-<!-- 自定义日历弹窗 -->
-<div id="datepicker-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:5000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)closeDatePicker()">
-    <div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-        <!-- 年份选择 -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px;">
-            <button type="button" onclick="changeYear(-1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 10px;">◀</button>
-            <span id="dp-year" style="font-size:1.3rem;font-weight:700;min-width:80px;text-align:center;"></span>
-            <button type="button" onclick="changeYear(1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 10px;">▶</button>
-        </div>
-        <!-- 月份网格 -->
-        <div id="dp-months" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;"></div>
-        <!-- 日期网格 -->
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:4px;" id="dp-grid"></div>
-        <button type="button" onclick="closeDatePicker()" style="width:100%;margin-top:16px;padding:14px;border:1px solid #e5e7eb;border-radius:10px;background:#f3f4f6;font-size:1rem;cursor:pointer;">取消</button>
-    </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/submit.js') }}"></script>
 <script>
-var dpYear, dpMonth;
+var dpYear, dpMonth, dpOpen = false;
 
-function openDatePicker() {
-    var input = document.getElementById('award_date');
-    var val = input.value;
-    if (val && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        dpYear = parseInt(val.slice(0,4));
-        dpMonth = parseInt(val.slice(5,7)) - 1;
-    } else {
-        var now = new Date();
-        dpYear = now.getFullYear();
-        dpMonth = now.getMonth();
+function toggleDatePicker() {
+    var panel = document.getElementById('datepicker-panel');
+    dpOpen = !dpOpen;
+    panel.style.display = dpOpen ? 'block' : 'none';
+    if (dpOpen) {
+        var input = document.getElementById('award_date');
+        var val = input.value;
+        if (val && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            dpYear = parseInt(val.slice(0,4));
+            dpMonth = parseInt(val.slice(5,7)) - 1;
+        } else {
+            var now = new Date();
+            dpYear = now.getFullYear();
+            dpMonth = now.getMonth();
+        }
+        renderCalendar();
     }
-    document.getElementById('datepicker-overlay').style.display = 'flex';
-    renderCalendar();
-}
-
-function closeDatePicker() {
-    document.getElementById('datepicker-overlay').style.display = 'none';
 }
 
 function changeYear(delta) {
@@ -218,7 +211,8 @@ function renderCalendar() {
 
 function pickDate(dateStr) {
     document.getElementById('award_date').value = dateStr;
-    closeDatePicker();
+    dpOpen = false;
+    document.getElementById('datepicker-panel').style.display = 'none';
 }
 </script>
 {% endblock %}
