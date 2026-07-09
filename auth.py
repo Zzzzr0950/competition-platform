@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from models import query_db, execute_db
-from auth_utils import hash_password, verify_password, login_required
+from auth_utils import hash_password, verify_password, login_required, get_current_user
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -128,13 +128,15 @@ def logout():
 @auth_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    """Change password page."""
+    """Change password page (also update QQ and phone)."""
+    user = get_current_user()
+
     if request.method == 'POST':
         old_pw = request.form.get('old_password', '').strip()
         new_pw = request.form.get('new_password', '').strip()
         confirm_pw = request.form.get('confirm_password', '').strip()
-
-        user = query_db("SELECT * FROM users WHERE id = ?", [session['user_id']], one=True)
+        qq = request.form.get('qq', '').strip()
+        phone = request.form.get('phone', '').strip()
 
         if not verify_password(old_pw, user['password_hash']):
             flash('原密码错误', 'error')
@@ -142,16 +144,17 @@ def change_password():
             flash('新密码长度不能少于6位', 'warning')
         elif new_pw != confirm_pw:
             flash('两次输入的新密码不一致', 'warning')
+        elif not phone:
+            flash('请输入手机号', 'warning')
         else:
             execute_db(
-                "UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?",
-                [hash_password(new_pw), session['user_id']]
+                "UPDATE users SET password_hash = ?, must_change_password = 0, qq = ?, phone = ? WHERE id = ?",
+                [hash_password(new_pw), qq, phone, session['user_id']]
             )
             flash('密码修改成功', 'success')
 
-            user_role = query_db("SELECT role FROM users WHERE id = ?", [session['user_id']], one=True)
-            if user_role and user_role['role'] == 'admin':
+            if user['role'] == 'admin':
                 return redirect(url_for('admin.dashboard'))
             return redirect(url_for('student.dashboard'))
 
-    return render_template('change_password.html')
+    return render_template('change_password.html', user=user)
