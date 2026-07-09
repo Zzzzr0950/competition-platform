@@ -334,6 +334,11 @@ input[type="date"].form-input {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    min-height: 48px;
+    transition: none;
+}
+input[type="date"].form-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
 }
 
 /* Prevent form inputs from overflowing card on mobile */
