@@ -72,20 +72,10 @@
 
         <div class="form-group" id="group-award_date">
             <label class="form-label" for="award_date"><span class="required">*</span> 获奖日期</label>
-            <!-- 日历面板（点击日期框展开） -->
-            <div id="datepicker-panel" style="display:none;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-                <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:10px;">
-                    <button type="button" onclick="changeYear(-1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 12px;">◀</button>
-                    <span id="dp-year" style="font-size:1.2rem;font-weight:700;min-width:80px;text-align:center;"></span>
-                    <button type="button" onclick="changeYear(1)" style="border:none;background:none;font-size:1rem;cursor:pointer;padding:6px 12px;">▶</button>
-                </div>
-                <div id="dp-months" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;"></div>
-                <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:4px;" id="dp-grid"></div>
-            </div>
             <div style="position:relative;">
                 <input type="text" class="form-input" id="award_date" name="award_date" readonly placeholder="点击选择日期" required
-                       onclick="toggleDatePicker()" style="cursor:pointer;padding-right:44px;">
-                <span onclick="toggleDatePicker()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.3rem;cursor:pointer;">📅</span>
+                       onclick="openDatePicker()" style="cursor:pointer;padding-right:44px;">
+                <span onclick="openDatePicker()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.2rem;cursor:pointer;pointer-events:none;">📅</span>
             </div>
             <div class="form-error">请选择获奖日期</div>
         </div>
@@ -135,31 +125,84 @@
     <p class="text-xs text-center mt-2 text-muted">提交后将由管理员审核，请确保信息真实准确</p>
 </form>
 
+<!-- 日历弹窗 -->
+<div id="dp-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeDP()">
+<div style="background:#fff;border-radius:14px;padding:18px;width:88%;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+ <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+  <span id="dp-ytxt" onclick="showYearPicker()" style="font-weight:700;font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:6px;"></span>
+  <div style="display:flex;gap:4px;">
+   <button type="button" onclick="dpMonth--;if(dpMonth<0){dpMonth=11;dpYear--}renderDp()" style="border:none;background:#f3f4f6;border-radius:6px;cursor:pointer;padding:6px 8px;font-size:1rem;">◀</button>
+   <button type="button" onclick="dpMonth++;if(dpMonth>11){dpMonth=0;dpYear++}renderDp()" style="border:none;background:#f3f4f6;border-radius:6px;cursor:pointer;padding:6px 8px;font-size:1rem;">▶</button>
+  </div>
+ </div>
+ <div id="dp-body"></div>
+ <button type="button" onclick="closeDP()" style="width:100%;margin-top:10px;padding:10px;border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;font-size:0.9rem;cursor:pointer;">取消</button>
+</div></div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/submit.js') }}"></script>
 <script>
-var dpYear, dpMonth, dpOpen = false;
+var dpYear, dpMonth, dpView='days';
 
-function toggleDatePicker() {
-    var panel = document.getElementById('datepicker-panel');
-    dpOpen = !dpOpen;
-    panel.style.display = dpOpen ? 'block' : 'none';
-    if (dpOpen) {
-        var input = document.getElementById('award_date');
-        var val = input.value;
-        if (val && val.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            dpYear = parseInt(val.slice(0,4));
-            dpMonth = parseInt(val.slice(5,7)) - 1;
-        } else {
-            var now = new Date();
-            dpYear = now.getFullYear();
-            dpMonth = now.getMonth();
+function openDatePicker(){
+    var v=document.getElementById('award_date').value;
+    if(v&&/^\d{4}-\d{2}-\d{2}$/.test(v)){dpYear=+v.slice(0,4);dpMonth=+v.slice(5,7)-1}
+    else{var n=new Date();dpYear=n.getFullYear();dpMonth=n.getMonth()}
+    dpView='days';document.getElementById('dp-overlay').style.display='flex';renderDp()
+}
+function closeDP(){document.getElementById('dp-overlay').style.display='none'}
+
+function showYearPicker(){dpView='years';renderDp()}
+function showMonthPicker(){dpView='months';renderDp()}
+
+function pickYear(y){dpYear=y;dpView='months';renderDp()}
+function pickMonth(m){dpMonth=m;dpView='days';renderDp()}
+
+function renderDp(){
+    var m=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    var body=document.getElementById('dp-body');
+    var txt=document.getElementById('dp-ytxt');
+    txt.textContent=dpYear+'年 '+m[dpMonth];
+
+    if(dpView==='years'){
+        var start=dpYear-dpYear%10;
+        var h='<div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;\">';
+        for(var y=start;y<start+12;y++){
+            var s=y===dpYear?'background:#1a56db;color:#fff;font-weight:600;':'cursor:pointer;';
+            h+='<div onclick=\"pickYear('+y+')\" style=\"'+s+'padding:10px 4px;border-radius:8px;font-size:0.9rem;\">'+y+'</div>';
         }
-        renderCalendar();
+        h+='</div>';
+        body.innerHTML=h;
+    }else if(dpView==='months'){
+        var h='<div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;\">';
+        for(var i=0;i<12;i++){
+            var s=i===dpMonth?'background:#1a56db;color:#fff;font-weight:600;':'cursor:pointer;';
+            h+='<div onclick=\"pickMonth('+i+')\" style=\"'+s+'padding:10px 4px;border-radius:8px;font-size:0.85rem;\">'+m[i]+'</div>';
+        }
+        h+='</div>';
+        body.innerHTML=h;
+    }else{
+        var h='<div style=\"display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2px;\">';
+        ['日','一','二','三','四','五','六'].forEach(function(d){h+='<div style=\"font-weight:600;color:#9ca3af;font-size:0.7rem;padding:6px 0;\">'+d+'</div>'});
+        var fd=new Date(dpYear,dpMonth,1).getDay();
+        var dim=new Date(dpYear,dpMonth+1,0).getDate();
+        var td=new Date();var ts=td.getFullYear()+'-'+String(td.getMonth()+1).padStart(2,'0')+'-'+String(td.getDate()).padStart(2,'0');
+        for(var i=0;i<fd;i++)h+='<div></div>';
+        for(var d=1;d<=dim;d++){
+            var ds=dpYear+'-'+String(dpMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+            var isT=ds===ts?'font-weight:700;':'';
+            h+='<div onclick=\"pickDate(\''+ds+'\')\" style=\"cursor:pointer;padding:8px 0;font-size:0.9rem;border-radius:8px;'+isT+'\">'+d+'</div>';
+        }
+        h+='</div>';
+        body.innerHTML=h;
     }
 }
+
+function pickDate(dateStr){document.getElementById('award_date').value=dateStr;closeDP()}
+</script>
+{% endblock %}
 
 function changeYear(delta) {
     dpYear += delta;
