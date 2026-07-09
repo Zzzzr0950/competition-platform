@@ -23,12 +23,13 @@
                 <div style="font-weight:600;font-size:0.9rem;">{{ u.name }}</div>
                 <div class="text-xs text-muted">{{ u.student_id }} · {{ u.class_name }}</div>
                 <div class="text-xs text-muted mt-1">
-                    申报数: {{ u.submission_count }}
+                    申报数: {{ u.submission_count }} · 初始密码: 123456
                     {% if u.qq %} · QQ: {{ u.qq }}{% endif %}
                     {% if u.phone %} · 📱 {{ u.phone }}{% endif %}
                 </div>
                 <div class="text-xs text-muted">注册于: {{ u.created_at[:10] }}</div>
             </div>
+            <button class="btn btn-xs btn-outline" onclick="resetPwd({{ u.id }})">重置密码</button>
             <button class="btn btn-xs {% if u.is_active %}btn-outline{% else %}btn-primary{% endif %}"
                     onclick="toggleUser({{ u.id }}, {{ u.is_active }})"
                     style="flex-shrink:0;">
@@ -52,6 +53,18 @@
 function searchUsers() {
     var q = document.getElementById('user-search').value.trim();
     window.location.href = '{{ url_for("admin.user_management") }}?search=' + encodeURIComponent(q);
+}
+
+function resetPwd(uid) {
+    confirmAction('确定重置该用户密码为 123456 吗？', function() {
+        fetch('/api/admin/users/' + uid + '/reset-password', {
+            method: 'POST', credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            showToast(d.message, d.error ? 'error' : 'success');
+        });
+    });
 }
 
 function toggleUser(uid, currentActive) {
