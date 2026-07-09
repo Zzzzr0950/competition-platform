@@ -58,5 +58,12 @@ def admin_required(f):
         if session.get('role') != 'admin':
             flash('无权访问管理页面', 'error')
             return redirect(url_for('student.dashboard'))
+        # 管理员也需要检查强制改密码
+        user = get_current_user()
+        if user and user['must_change_password']:
+            from flask import request
+            if request.endpoint not in ('auth.change_password', 'auth.logout'):
+                flash('请先修改初始密码后再使用系统', 'warning')
+                return redirect(url_for('auth.change_password'))
         return f(*args, **kwargs)
     return decorated_function
