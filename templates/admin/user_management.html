@@ -30,7 +30,7 @@
                 <div class="text-xs text-muted">注册于: {{ u.created_at[:10] }}</div>
             </div>
             <div style="display:flex;gap:4px;flex-shrink:0;">
-                <button class="btn btn-xs btn-outline" onclick="resetPassword({{ u.id }}, '{{ u.name }}')">
+                <button class="btn btn-xs btn-outline" onclick="resetPassword({{ u.id }})">
                     重置密码
                 </button>
                 <button class="btn btn-xs {% if u.is_active %}btn-outline{% else %}btn-primary{% endif %}"
@@ -58,8 +58,8 @@ function searchUsers() {
     window.location.href = '{{ url_for("admin.user_management") }}?search=' + encodeURIComponent(q);
 }
 
-function resetPassword(uid, name) {
-    confirmAction('确定要重置 ' + name + ' 的密码为 123456 吗？\n重置后该用户下次登录需修改密码。', function() {
+function resetPassword(uid) {
+    confirmAction('确定要重置该用户的密码为 123456 吗？\n重置后该用户下次登录需修改密码。', function() {
         Loading.show('处理中...');
         fetch('/api/admin/users/' + uid + '/reset-password', {
             method: 'POST',
