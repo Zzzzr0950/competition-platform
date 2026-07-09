@@ -35,9 +35,12 @@ def create_app():
     app.register_blueprint(student_bp)
     app.register_blueprint(admin_bp)
 
-    # Register mini program API blueprint (JWT-based)
-    from api_bp import api_bp
-    app.register_blueprint(api_bp)
+    # Register mini program API blueprint (JWT-based, optional)
+    try:
+        from api_bp import api_bp
+        app.register_blueprint(api_bp)
+    except ImportError:
+        pass  # 没有小程序API也能正常运行
 
     # 禁止浏览器缓存，防止手机退出后显示混乱
     @app.after_request
