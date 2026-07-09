@@ -25,9 +25,7 @@ def get_current_user():
 
 
 def login_required(f):
-    """Decorator: requires student or admin login.
-    Also forces password change if must_change_password is set.
-    """
+    """Decorator: requires student or admin login."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get('user_id') is None:
@@ -38,12 +36,6 @@ def login_required(f):
             session.clear()
             flash('账户已被禁用，请联系管理员', 'error')
             return redirect(url_for('auth.login'))
-        # 首次登录强制改密码（改密码页面和退出除外）
-        if user['must_change_password']:
-            from flask import request
-            if request.endpoint not in ('auth.change_password', 'auth.logout'):
-                flash('请先修改初始密码后再使用系统', 'warning')
-                return redirect(url_for('auth.change_password'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -58,12 +50,5 @@ def admin_required(f):
         if session.get('role') != 'admin':
             flash('无权访问管理页面', 'error')
             return redirect(url_for('student.dashboard'))
-        # 管理员也需要检查强制改密码
-        user = get_current_user()
-        if user and user['must_change_password']:
-            from flask import request
-            if request.endpoint not in ('auth.change_password', 'auth.logout'):
-                flash('请先修改初始密码后再使用系统', 'warning')
-                return redirect(url_for('auth.change_password'))
         return f(*args, **kwargs)
     return decorated_function
