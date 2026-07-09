@@ -579,3 +579,20 @@ def toggle_user_active(uid):
 
     action = '启用' if new_status else '禁用'
     return jsonify({'success': True, 'message': f'已{action}用户 {user["name"]}'})
+
+
+@admin_bp.route('/api/admin/users/<int:uid>/reset-password', methods=['POST'])
+@admin_required
+def reset_user_password(uid):
+    """Reset a student's password to 123456 and force change on next login."""
+    from auth_utils import hash_password
+
+    user = query_db("SELECT * FROM users WHERE id = ? AND role = 'student'", [uid], one=True)
+    if not user:
+        return jsonify({'error': '用户不存在'}), 404
+
+    execute_db(
+        "UPDATE users SET password_hash = ?, must_change_password = 1 WHERE id = ?",
+        [hash_password('123456'), uid]
+    )
+    return jsonify({'success': True, 'message': f'已重置 {user["name"]} 的密码为 123456，下次登录需修改'})

@@ -29,11 +29,15 @@
                 </div>
                 <div class="text-xs text-muted">注册于: {{ u.created_at[:10] }}</div>
             </div>
-            <button class="btn btn-xs {% if u.is_active %}btn-outline{% else %}btn-primary{% endif %}"
-                    onclick="toggleUser({{ u.id }}, {{ u.is_active }})"
-                    style="flex-shrink:0;">
-                {{ '禁用' if u.is_active else '启用' }}
-            </button>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+                <button class="btn btn-xs btn-outline" onclick="resetPassword({{ u.id }}, '{{ u.name }}')">
+                    重置密码
+                </button>
+                <button class="btn btn-xs {% if u.is_active %}btn-outline{% else %}btn-primary{% endif %}"
+                        onclick="toggleUser({{ u.id }}, {{ u.is_active }})">
+                    {{ '禁用' if u.is_active else '启用' }}
+                </button>
+            </div>
         </div>
     </div>
     {% endfor %}
@@ -52,6 +56,21 @@
 function searchUsers() {
     var q = document.getElementById('user-search').value.trim();
     window.location.href = '{{ url_for("admin.user_management") }}?search=' + encodeURIComponent(q);
+}
+
+function resetPassword(uid, name) {
+    confirmAction('确定要重置 ' + name + ' 的密码为 123456 吗？\n重置后该用户下次登录需修改密码。', function() {
+        Loading.show('处理中...');
+        fetch('/api/admin/users/' + uid + '/reset-password', {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            Loading.hide();
+            showToast(d.message, d.error ? 'error' : 'success');
+        });
+    });
 }
 
 function toggleUser(uid, currentActive) {
