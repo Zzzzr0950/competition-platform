@@ -76,21 +76,38 @@ function filterCatalogAccordion() {
 }
 
 // Image preview
+// Accumulated file list, preserved across multiple picks
+var selectedFiles = [];
+
 function previewImages(input) {
     var files = input.files;
     if (!files || files.length === 0) return;
+    // Append new files to accumulated list
+    for (var i = 0; i < files.length; i++) {
+        selectedFiles.push(files[i]);
+    }
+    input.value = ''; // clear so same file can be re-selected
+    refreshPreviews();
+}
+
+function refreshPreviews() {
     var list = document.getElementById('preview-list');
     list.innerHTML = '';
+    var n = selectedFiles.length;
+    if (n === 0) {
+        document.getElementById('upload-icon').textContent = '📷';
+        document.getElementById('upload-text').textContent = '点击上传获奖证书图片（可多选）';
+        return;
+    }
+    document.getElementById('upload-icon').textContent = n > 1 ? '📑' : '📷';
+    document.getElementById('upload-text').textContent = '已选 ' + n + ' 个文件（可继续添加）';
 
-    document.getElementById('upload-icon').textContent = files.length > 1 ? '📑' : '📷';
-    document.getElementById('upload-text').textContent = '已选 ' + files.length + ' 个文件';
-
-    for (var i = 0; i < files.length; i++) {
+    for (var i = 0; i < n; i++) {
         (function(file, idx) {
-            if (file.type === 'application/pdf' || file.name.match(/\.pdf$/i)) {
+            if (file.type === 'application/pdf' || (file.name && file.name.match(/\.pdf$/i))) {
                 var div = document.createElement('div');
                 div.style.cssText = 'width:80px;height:60px;border-radius:6px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:0.7rem;background:#fef2f2;color:#dc2626;position:relative;';
-                div.innerHTML = '<span>PDF</span><button onclick="removeOne('+idx+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:0.7rem;cursor:pointer;">✕</button>';
+                div.innerHTML = '<span>PDF</span><button onclick=\"removeOne('+idx+')\" style=\"position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:0.7rem;cursor:pointer;\">✕</button>';
                 list.appendChild(div);
             } else {
                 var div = document.createElement('div');
@@ -108,15 +125,13 @@ function previewImages(input) {
                 reader.onload = function(e) { img.src = e.target.result; };
                 reader.readAsDataURL(file);
             }
-        })(files[i], i);
+        })(selectedFiles[i], i);
     }
 }
 
 function removeOne(idx) {
-    document.getElementById('certificate').value = '';
-    document.getElementById('preview-list').innerHTML = '';
-    document.getElementById('upload-icon').textContent = '📷';
-    document.getElementById('upload-text').textContent = '点击上传获奖证书图片（可多选）';
+    selectedFiles.splice(idx, 1);
+    refreshPreviews();
 }
 
 // Drag and drop support
@@ -138,11 +153,10 @@ function removeOne(idx) {
         e.preventDefault();
         zone.classList.remove('drag-over');
         var files = e.dataTransfer.files;
-        if (files.length > 0) {
-            var input = document.getElementById('certificate');
-            input.files = files;
-            previewImage(input);
+        for (var i = 0; i < files.length; i++) {
+            selectedFiles.push(files[i]);
         }
+        refreshPreviews();
     });
 })();
 
@@ -201,9 +215,9 @@ document.getElementById('submit-form').addEventListener('submit', function(e) {
     formData.append('team_members', document.getElementById('team_members').value);
     formData.append('is_leader', document.getElementById('is_leader').checked ? '1' : '0');
 
-    var fileInput = document.getElementById('certificate');
-    if (fileInput.files.length > 0) {
-        formData.append('certificate', fileInput.files[0]);
+    // Append all accumulated files
+    for (var i = 0; i < selectedFiles.length; i++) {
+        formData.append('certificate', selectedFiles[i]);
     }
 
     var btn = document.getElementById('submit-btn');
