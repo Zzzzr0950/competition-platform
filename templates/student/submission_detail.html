@@ -93,15 +93,17 @@
     </div>
 </div>
 
-<!-- Certificate -->
-{% if sub.certificate_image %}
+<!-- Certificates -->
+{% if cert_images %}
 <div class="detail-section">
-    <div class="detail-section-title">证明材料</div>
-    <div class="image-viewer">
-        <img src="/uploads/{{ sub.certificate_image }}" alt="证明材料" id="certificate-img">
+    <div class="detail-section-title">证明材料（{{ cert_images|length }} 张）</div>
+    {% for img in cert_images %}
+    <div class="image-viewer" style="margin-bottom:8px;">
+        <img src="/uploads/{{ img }}" alt="证明材料 {{ loop.index }}" onclick="openFullImage('/uploads/{{ img }}')" style="cursor:pointer;max-width:100%;border-radius:6px;">
     </div>
+    {% endfor %}
     <div class="btn-group mt-2">
-        <button class="btn btn-outline btn-sm" onclick="openFullImage()">🔍 查看大图</button>
+        <button class="btn btn-outline btn-sm" onclick="openFullImage('/uploads/{{ cert_images[0] }}')">🔍 查看大图</button>
         <a href="/uploads/{{ sub.certificate_image }}" download class="btn btn-primary btn-sm">📥 保存图片</a>
     </div>
 </div>
@@ -153,10 +155,10 @@
 
 {% block extra_js %}
 <script>
-function openFullImage() {
+function openFullImage(src) {
     var overlay = document.getElementById('full-img-overlay');
     var img = document.getElementById('full-img');
-    img.src = document.getElementById('certificate-img').src;
+    if (src) img.src = src;
     overlay.style.display = 'block';
 }
 function showDeleteModal() {

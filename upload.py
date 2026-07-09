@@ -81,6 +81,26 @@ def create_thumbnail(filepath, original_filename):
         return None
 
 
+def save_uploads(file_list):
+    """Save multiple uploaded files, return comma-separated relative paths."""
+    paths = []
+    for f in file_list:
+        if f and f.filename:
+            try:
+                cert_path, _ = save_upload(f)
+                paths.append(cert_path)
+            except ValueError:
+                pass  # skip invalid files
+    return ','.join(paths)
+
+
+def parse_certificate_images(value):
+    """Parse certificate_image field into list of paths."""
+    if not value:
+        return []
+    return [p.strip() for p in value.split(',') if p.strip()]
+
+
 def get_image_url(relative_path):
     """Convert a relative path to a URL for templates."""
     if not relative_path:

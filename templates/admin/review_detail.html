@@ -15,15 +15,17 @@
     </div>
 </div>
 
-{% if sub.certificate_image %}
-<!-- Certificate Image (large) -->
+{% set imgs = sub.certificate_image.split(',') if sub.certificate_image else [] %}
+{% if imgs|length > 0 %}
 <div class="detail-section">
-    <div class="detail-section-title">📎 证明材料（点击可放大）</div>
-    <div class="image-viewer" style="background:#f0f0f0;border-radius:8px;padding:8px;">
-        <img src="/uploads/{{ sub.certificate_image }}" alt="证书图片"
+    <div class="detail-section-title">📎 证明材料（{{ imgs|length }} 张，点击可放大）</div>
+    {% for img in imgs %}
+    <div class="image-viewer" style="background:#f0f0f0;border-radius:8px;padding:8px;margin-bottom:8px;">
+        <img src="/uploads/{{ img }}" alt="证书图片 {{ loop.index }}"
              style="max-width:100%;max-height:400px;display:block;margin:0 auto;cursor:zoom-in;"
              onclick="openImageModal(this.src)">
     </div>
+    {% endfor %}
 </div>
 {% else %}
 <div class="card" style="text-align:center;padding:24px;color:var(--color-danger);">

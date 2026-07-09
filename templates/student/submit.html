@@ -109,15 +109,12 @@
 
         <div class="upload-zone" id="upload-zone" onclick="document.getElementById('certificate').click()">
             <div class="upload-zone-icon" id="upload-icon">📷</div>
-            <div class="upload-zone-text" id="upload-text">点击上传获奖证书图片</div>
-            <div class="upload-zone-hint">支持 JPG、PNG、PDF 格式，不超过 10MB</div>
+            <div class="upload-zone-text" id="upload-text">点击上传获奖证书图片（可多选）</div>
+            <div class="upload-zone-hint">支持 JPG、PNG、PDF 格式，可一次选多张，不超过 10MB</div>
             <input type="file" id="certificate" name="certificate" accept=".jpg,.jpeg,.png,.pdf"
-                   style="display:none;" onchange="previewImage(this)">
+                   style="display:none;" multiple onchange="previewImages(this)">
         </div>
-        <div class="upload-preview" id="preview-container" style="display:none;">
-            <img id="preview-img" src="" alt="证书预览">
-            <button type="button" class="remove-preview" onclick="removePreview()">✕</button>
-        </div>
+        <div id="preview-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
     </div>
 
     <!-- Submit Button -->

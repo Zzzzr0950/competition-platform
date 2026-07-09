@@ -5,7 +5,7 @@ from flask import (Blueprint, render_template, request, redirect,
                    url_for, session, flash, jsonify, current_app)
 from models import query_db, execute_db
 from auth_utils import login_required, get_current_user
-from upload import save_upload
+from upload import save_upload, save_uploads, parse_certificate_images
 from flask import send_from_directory
 from config import UPLOAD_FOLDER, THUMBNAIL_FOLDER
 
@@ -117,14 +117,14 @@ def create_submission():
     if errors:
         return jsonify({'error': '; '.join(errors)}), 400
 
-    # Handle file upload
+    # Handle file upload (supports multiple files)
     certificate_path = ''
-    thumb_path = ''
     if 'certificate' in request.files:
-        file = request.files['certificate']
-        if file and file.filename:
+        files = request.files.getlist('certificate')
+        valid_files = [f for f in files if f and f.filename]
+        if valid_files:
             try:
-                certificate_path, thumb_path = save_upload(file)
+                certificate_path = save_uploads(valid_files)
             except ValueError as e:
                 return jsonify({'error': str(e)}), 400
 
@@ -350,9 +350,11 @@ def submission_detail(sid):
         reviewer = query_db("SELECT name FROM users WHERE id = ?", [sub['reviewed_by']], one=True)
 
     status_map = {'pending': '审核中', 'approved': '已通过', 'rejected': '已驳回'}
+    cert_images = parse_certificate_images(sub['certificate_image'] or '')
 
     return render_template('student/submission_detail.html',
-                          sub=sub, reviewer=reviewer, status_map=status_map)
+                          sub=sub, reviewer=reviewer, status_map=status_map,
+                          cert_images=cert_images)
 
 
 @student_bp.route('/uploads/<path:filename>')

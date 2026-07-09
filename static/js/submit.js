@@ -76,51 +76,47 @@ function filterCatalogAccordion() {
 }
 
 // Image preview
-function previewImage(input) {
-    var file = input.files[0];
-    if (!file) return;
+function previewImages(input) {
+    var files = input.files;
+    if (!files || files.length === 0) return;
+    var list = document.getElementById('preview-list');
+    list.innerHTML = '';
 
-    // Validate file type
-    var validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (validTypes.indexOf(file.type) === -1 && !file.name.match(/\.(jpg|jpeg|png|pdf)$/i)) {
-        showToast('不支持的文件格式，请上传 JPG、PNG 或 PDF', 'error');
-        input.value = '';
-        return;
+    document.getElementById('upload-icon').textContent = files.length > 1 ? '📑' : '📷';
+    document.getElementById('upload-text').textContent = '已选 ' + files.length + ' 个文件';
+
+    for (var i = 0; i < files.length; i++) {
+        (function(file, idx) {
+            if (file.type === 'application/pdf' || file.name.match(/\.pdf$/i)) {
+                var div = document.createElement('div');
+                div.style.cssText = 'width:80px;height:60px;border-radius:6px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:0.7rem;background:#fef2f2;color:#dc2626;position:relative;';
+                div.innerHTML = '<span>PDF</span><button onclick="removeOne('+idx+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:0.7rem;cursor:pointer;">✕</button>';
+                list.appendChild(div);
+            } else {
+                var div = document.createElement('div');
+                div.style.cssText = 'width:80px;height:60px;border-radius:6px;overflow:hidden;border:1px solid #e5e7eb;position:relative;';
+                var img = document.createElement('img');
+                img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+                div.appendChild(img);
+                var btn = document.createElement('button');
+                btn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:0.7rem;cursor:pointer;';
+                btn.textContent = '✕';
+                btn.onclick = function() { removeOne(idx); };
+                div.appendChild(btn);
+                list.appendChild(div);
+                var reader = new FileReader();
+                reader.onload = function(e) { img.src = e.target.result; };
+                reader.readAsDataURL(file);
+            }
+        })(files[i], i);
     }
-
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        showToast('文件大小不能超过 10MB', 'error');
-        input.value = '';
-        return;
-    }
-
-    // PDF preview
-    if (file.type === 'application/pdf' || file.name.match(/\.pdf$/i)) {
-        document.getElementById('upload-icon').textContent = '📄';
-        document.getElementById('upload-text').textContent = '已选择: ' + file.name;
-        document.getElementById('preview-container').style.display = 'none';
-        return;
-    }
-
-    // Image preview
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('preview-img').src = e.target.result;
-        document.getElementById('preview-container').style.display = 'inline-block';
-        document.getElementById('upload-icon').textContent = '✅';
-        document.getElementById('upload-text').textContent = '点击重新选择';
-    };
-    reader.readAsDataURL(file);
 }
 
-// Remove preview
-function removePreview() {
+function removeOne(idx) {
     document.getElementById('certificate').value = '';
-    document.getElementById('preview-container').style.display = 'none';
-    document.getElementById('preview-img').src = '';
+    document.getElementById('preview-list').innerHTML = '';
     document.getElementById('upload-icon').textContent = '📷';
-    document.getElementById('upload-text').textContent = '点击上传获奖证书图片';
+    document.getElementById('upload-text').textContent = '点击上传获奖证书图片（可多选）';
 }
 
 // Drag and drop support
