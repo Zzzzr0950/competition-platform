@@ -10,6 +10,12 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Login page and authentication handler."""
+    # 已登录用户直接跳转
+    if session.get('user_id'):
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('student.dashboard'))
+
     if request.method == 'POST':
         student_id = request.form.get('student_id', '').strip()
         password = request.form.get('password', '')

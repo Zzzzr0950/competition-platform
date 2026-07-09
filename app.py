@@ -35,6 +35,18 @@ def create_app():
     app.register_blueprint(student_bp)
     app.register_blueprint(admin_bp)
 
+    # Register mini program API blueprint (JWT-based)
+    from api_bp import api_bp
+    app.register_blueprint(api_bp)
+
+    # 禁止浏览器缓存，防止手机退出后显示混乱
+    @app.after_request
+    def no_cache(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+
     # Error handlers
     @app.errorhandler(404)
     def not_found(e):
