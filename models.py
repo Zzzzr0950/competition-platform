@@ -9,12 +9,41 @@ from config import DATABASE_PATH, UPLOAD_FOLDER, THUMBNAIL_FOLDER
 
 
 def get_db():
-    """Get a database connection with row_factory set to sqlite3.Row."""
+    """Get a database connection. Reuses connection within a Flask request."""
+    try:
+        from flask import g, has_app_context
+        if has_app_context() and 'db' in g:
+            return g.db
+    except RuntimeError:
+        pass
+
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    try:
+        conn.execute("PRAGMA cache_size=-8000")
+        conn.execute("PRAGMA mmap_size=268435456")
+    except:
+        pass
+
+    # Store on g if in Flask context
+    try:
+        from flask import g, has_app_context
+        if has_app_context():
+            g.db = conn
+    except RuntimeError:
+        pass
+
     return conn
+
+
+def close_db(exception=None):
+    """Close the database connection at the end of a request."""
+    from flask import g
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 
 def init_db():
@@ -147,12 +176,10 @@ def query_db(query, args=(), one=False):
     try:
         cur = conn.execute(query, args)
         rows = cur.fetchall()
-        conn.close()
         if one:
             return rows[0] if rows else None
         return rows
     except Exception:
-        conn.close()
         raise
 
 
@@ -163,8 +190,6 @@ def execute_db(query, args=()):
         cur = conn.execute(query, args)
         conn.commit()
         last_id = cur.lastrowid
-        conn.close()
         return last_id
     except Exception:
-        conn.close()
         raise
