@@ -21,6 +21,10 @@ def create_app():
     # Initialize database
     init_db()
 
+    # Reuse DB connection per request
+    from models import close_db
+    app.teardown_appcontext(close_db)
+
     # Seed initial data (idempotent)
     from seed_data import seed_if_empty
     with app.app_context():

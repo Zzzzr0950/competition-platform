@@ -200,8 +200,16 @@ document.getElementById('submit-form').addEventListener('submit', function(e) {
         document.getElementById('group-award_date').classList.remove('error');
     }
 
+    // Certificate is mandatory
+    if (selectedFiles.length === 0) {
+        document.getElementById('group-certificate').classList.add('error');
+        valid = false;
+    } else {
+        document.getElementById('group-certificate').classList.remove('error');
+    }
+
     if (!valid) {
-        showToast('请填写所有必填项', 'warning');
+        showToast('请填写所有必填项并上传证明材料', 'warning');
         return;
     }
 

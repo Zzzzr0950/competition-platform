@@ -108,6 +108,12 @@ def create_submission():
     if not award_date:
         errors.append('请选择获奖日期')
 
+    # Certificate is mandatory
+    files = request.files.getlist('certificate')
+    valid_files = [f for f in files if f and f.filename]
+    if not valid_files:
+        errors.append('请上传获奖证书等证明材料')
+
     # Calculate credits preview
     from credit_calculator import calculate_credits
     preview_credits = calculate_credits(
@@ -117,16 +123,11 @@ def create_submission():
     if errors:
         return jsonify({'error': '; '.join(errors)}), 400
 
-    # Handle file upload (supports multiple files)
-    certificate_path = ''
-    if 'certificate' in request.files:
-        files = request.files.getlist('certificate')
-        valid_files = [f for f in files if f and f.filename]
-        if valid_files:
-            try:
-                certificate_path = save_uploads(valid_files)
-            except ValueError as e:
-                return jsonify({'error': str(e)}), 400
+    # Handle file upload (already validated — at least one file exists)
+    try:
+        certificate_path = save_uploads(valid_files)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
     try:
         submission_id = execute_db(
